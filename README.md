@@ -51,7 +51,7 @@ console.log("Serialized Packet (hex):", serialized.toString("hex"));
 
 Tests are written using Jest. To run tests:
 
-```bash
+```sh
 npm test
 ```
 
