@@ -57,9 +57,9 @@ npm test
 
 Tests cover various cases, including parsing and serialization, to ensure reliability and stability.
 
-### Sample Wireshark Pcap
+### Sample IKEv2 Wireshark Pcap
 
-You can check the message and their content in this Pcap sample from Wireshark:
+You can check the IKEv2 messages and their content in this Pcap sample from Wireshark:
 
 [Sample IKEv2 Wireshark Pcap](./pcap/capture.pcapng)
 
