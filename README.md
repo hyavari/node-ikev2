@@ -55,6 +55,15 @@ Tests are written using Jest. To run tests:
 npm test
 ```
 
+### Building, Development and Testing
+
+Clone this repository, then...
+
+```sh
+npm install
+npm run build-and-test
+```
+
 Tests cover various cases, including parsing and serialization, to ensure reliability and stability.
 
 ### Sample IKEv2 Wireshark Pcap
