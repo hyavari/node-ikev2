@@ -12,13 +12,13 @@ A TypeScript parser for Internet Key Exchange Version 2 (IKEv2) protocol, design
 
 ### Project Structure
 
-• *Header*: Manages parsing and serialization of the IKEv2 header.
+• **Header**: Manages parsing and serialization of the IKEv2 header.
 
-• *Payload*: Represents individual IKEv2 payloads. Different types of payloads (e.g., SA, KE, AUTH) are represented by dedicated classes, enabling specific parsing logic for each type.
+• **Payload**: Represents individual IKEv2 payloads. Different types of payloads (e.g., SA, KE, AUTH) are represented by dedicated classes, enabling specific parsing logic for each type.
 
-• *Transform & Proposal*: Contains structures for handling proposals and transforms within the IKEv2 SA payload, supporting complex configurations and transformations.
+• **Transform & Proposal**: Contains structures for handling proposals and transforms within the IKEv2 SA payload, supporting complex configurations and transformations.
 
-• *Message*: The main class to parse and serialize IKEv2 messages, which combines the header and payloads.
+• **Message**: The main class to parse and serialize IKEv2 messages, which combines the header and payloads.
 
 
 ### Usage
@@ -54,3 +54,14 @@ Tests are written using Jest. To run tests:
 ```bash
 npm test
 ```
+
+Tests cover various cases, including parsing and serialization, to ensure reliability and stability.
+
+### Contributing
+
+Contributions are welcome! To contribute:
+
+1.	Fork the repository.
+2.	Create a new branch for your feature or bugfix.
+3.	Write tests for any new functionality.
+4.	Open a pull request with a clear description of changes.
