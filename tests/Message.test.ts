@@ -1,18 +1,73 @@
-import { Message } from '../src/message';
+import { Message } from "../src/message";
 
-// Test case for the hex sample 1
-describe("IKEv2 Message Parsing and Serialization", () => {
-    const messageHex_1 = "89922c915f35570e000000000000000021202208000000000000012c2200002800000024010100030300000c01000014800e0100030000080200000500000008040000132800004800130000db253178440ce776a794133cb8b69e5eb074733536570c64d7b630549c899c0712d828b37168500885e051024578afc75c101f73b8943cad62d74a30f2be1fca2b00002c09cb538b2c3dbd4d0bb0eec8d318cb801a9b4715b207828d9b5ff1f4ec64ed58863707bcf14ccf052b000014eb4c1b788afd4a9cb7730a68d56c53212b000014c61baca1f1a60cc108000000000000002b0000184048b7d56ebce88525e7de7f00d6c2d3c0000000290000144048b7d56ebce88525e7de7f00d6c2d3290000080000402e2900000800004016000000100000402f0001000200030004";
-    const messageBuffer = Buffer.from(messageHex_1, "hex");
+// Test case for the hex sample IKE_SA_INIT Initiator message
+describe("IKEv2 IKE_SA_INIT Message Parsing and Serialization", () => {
+  const messageHex_1 =
+    "89922c915f35570e000000000000000021202208000000000000012c2200002800000024010100030300000c01000014800e0100030000080200000500000008040000132800004800130000db253178440ce776a794133cb8b69e5eb074733536570c64d7b630549c899c0712d828b37168500885e051024578afc75c101f73b8943cad62d74a30f2be1fca2b00002c09cb538b2c3dbd4d0bb0eec8d318cb801a9b4715b207828d9b5ff1f4ec64ed58863707bcf14ccf052b000014eb4c1b788afd4a9cb7730a68d56c53212b000014c61baca1f1a60cc108000000000000002b0000184048b7d56ebce88525e7de7f00d6c2d3c0000000290000144048b7d56ebce88525e7de7f00d6c2d3290000080000402e2900000800004016000000100000402f0001000200030004";
+  const messageBuffer = Buffer.from(messageHex_1, "hex");
 
-    it("parses a hex buffer to an Message object", () => {
-        const message = Message.parse(messageBuffer);
-        expect(message).toBeDefined();
-    });
+  it("parses a hex buffer to an Message object", () => {
+    const message = Message.parse(messageBuffer);
+    expect(message).toBeDefined();
+  });
 
-    it("serializes an Message object back to the original hex string", () => {
-        const message = Message.parse(messageBuffer);
-        const serializedBuffer = Message.serializeJSON(message.toJSON());
-        expect(serializedBuffer.toString("hex")).toBe(messageHex_1);
-    });
+  it("serializes an Message object back to the original hex string", () => {
+    const message = Message.parse(messageBuffer);
+    const serializedBuffer = Message.serializeJSON(message.toJSON());
+    expect(serializedBuffer.toString("hex")).toBe(messageHex_1);
+  });
+});
+
+// Test case for the hex sample IKE_SA_INIT Responder message
+describe("IKEv2 IKE_SA_INIT Responder Message Parsing and Serialization", () => {
+  const messageHex_1 =
+    "89922c915f35570e98d56d32e2a047422120222000000000000001312200002800000024010100030300000c01000014800e01000300000802000005000000080400001328000048001300001d9cd5974c950c95e0544483fb1f7a9132f5fe8959c09ab3a54c779ff2bcf4522a030dc33b9d5ddfeb99e028c0e8ba7d80dfdcf12b1516dbe180e6aec664428b2600002c1d107dc5a7463da7d761014139fb381af9cd3b8c0181e6cd36a8ae105e55aa7fe71f5db1d36c29152b000005042b0000184048b7d56ebce88525e7de7f00d6c2d3c00000002b0000144048b7d56ebce88525e7de7f00d6c2d32b000014c6f57ac398f493208145b7581e8789832900001485817703c6e320d2ae5a4dd02056c6d7290000080000402e290000100000402f00010002000300040000000800004014";
+  const messageBuffer = Buffer.from(messageHex_1, "hex");
+
+  it("parses a hex buffer to an Message object", () => {
+    const message = Message.parse(messageBuffer);
+    expect(message).toBeDefined();
+  });
+
+  it("serializes an Message object back to the original hex string", () => {
+    const message = Message.parse(messageBuffer);
+    const serializedBuffer = Message.serializeJSON(message.toJSON());
+    expect(serializedBuffer.toString("hex")).toBe(messageHex_1);
+  });
+});
+
+// Test case for the hex sample IKE_AUTH Initiator message
+describe("IKEv2 IKE_AUTH Initiator Message Parsing and Serialization", () => {
+  const messageHex_1 =
+    "89922c915f35570e98d56d32e2a047422e2023080000000100000500230004e4be1114ab1abe02954640ce512b03d6527a50dd17707ff420b9b5b02d2874c57afdd3fa95b15693017a128333c8d694f2cd61e98b0717f65e1860430f0699a4174af6a6c929ff4114b686f201f471ff9b191e4d4cbd43dd994ef6d5179b6845843d2d1502f16d4356dc3bad819c1b0549296bdbe479878dbc8a8be71f9017946bc198ef010f83a69a5d81a312be0df9afa949e3f0807bd2785498c0c492f0bcde5085b2df1187657cbf23e11c25558af278d01bceadf5548a8990a6adea270410cb161786e0798ed8f0473442b43399e421226f2ee1e2b0787dfcf56b7b32f3d0b02d038764ce8ffee757b94896763c68c2bb2a94dec851dcf7e4489ba8e431d1c63cf5d19a097674b51358e6b5052a87dd48bb3be834b06ab704579fcac6f6bf647c87b4c5c0b7353df60b55e32a75ac4ced3c1724d32a068207226769352b08eefb195da55e29c3eea105f0fd024029e0d78b83757bd1b6052a64febad6779cfca35b9a2529dc15d2a5ee8825a2ab3e72ede84aaeb86e8debd62a9b3d6503dd6c1a7e03b87b81578dc0fb087a5ad2d6bf6bd149d108defcabb5721f8b4ebf1b9b7880bdd2fc93856afe4f54a32125964bbcfd917239f5af1db9cd3d188ab71658267a445c13d21471695da3f3a674c2baaf5fd7636cc8ca4b43142fd2588bb31fddd6a42b20ebc03b0104e8beb1356fc8630bd95de8574e16fe14cfa9a6455e20e9eb08bf632cea53e7c614277e32fa81d9cb2efed29b04377a748bfab753058349f21a03fa5c5f478bc0bd993ca3e982b9d19fa8d24306e46ab41d9bbfd1d2e2da112b6c840cc7b86b8e005aa71b5339d1ff2eabb0124df2bf910173c17380a7e385d22f94fa6e3f78bce897a9a37e08c11124661701dfd643bba0c4ab4d8e19bb95478e272d61c1a16d4e562f25c3c0a169d39a84045183e2684ac80ab6e18f20dc4cc8d5b1d8329307766d58695eff5614c207e04515293307f9dbeb621e1c25665f75f55e1ae90caa43a500fa1ecf183d7e7d46db8eae03e1bc7a3aefab0c009884ca11e78898418459936a02699e5f7f798d3c81de4933a7f14f62aa5c31ae2693089ca1df68a52cd338d5d25390535099dd4f0646318f079822b43f5a47b7db9eba75ef843a4298fb9e695a349824bef5ee441997f7c5303c4f8288bb8be16cc72fc348c777ec7ce8b0f032633890f01fbeef028f3bb5ffd1ec663e9304cf745d4659fc67f32dcffffa9deae650665a2779b742057d7186bd2603ce0946c41589d63fae9c404d6c7f793a436c775ad7d34f2dd609a2724ac70b514a76d2488eefb6fc2f3bd1964dfc1a0d652e89a9e0b3278bc2c4c96119df82bdc3b1f99d399b0dbf62d23ea3a7e940177525130bdf5960b33b3d2d7328d98a5fd9bbec2e71404b77facc8053a14feafd49bf150f450384b99d39254931f06ac18d2253685c52b4ee6ad50337dbce7f72bf56e4bf55fdf3fd42c39c7d65a48987ad84d1e0c4e4543463c95a8e646744240fdc00b60c009f4afd15b800182a5004e4062557e7b20115e01d1cc35eb8d01e22f0bf2dbb2db84a970934d05f9b0d5e5350a45f733a747e229eca56087886a5c09efac80c9545e6d849189b40d7e7b9da4a9f049fb0273c3a2ad370a84d5e7db14c362cc84483bbe70f25738116b11b877a7939628a2dec6a590056fdc7ce849770f12d0f63a701e672cf9375c68c4325e60e3eae46c7dd014df09d4594339fa5e82ab39de316df933694dae20120886403";
+  const messageBuffer = Buffer.from(messageHex_1, "hex");
+
+  it("parses a hex buffer to an Message object", () => {
+    const message = Message.parse(messageBuffer);
+    expect(message).toBeDefined();
+  });
+
+  it("serializes an Message object back to the original hex string", () => {
+    const message = Message.parse(messageBuffer);
+    const serializedBuffer = Message.serializeJSON(message.toJSON());
+    expect(serializedBuffer.toString("hex")).toBe(messageHex_1);
+  });
+});
+
+// Test case for the hex sample IKE_AUTH Responder message
+describe("IKEv2 IKE_AUTH Responder Message Parsing and Serialization", () => {
+  const messageHex_1 =
+    "89922c915f35570e98d56d32e2a047422e20232000000001000004f8240004dc0fb34e8905b03a3d9b9770f3e63428ab00be1bc29397bec721ef9bd02e6cc64a309b0c0dd67e4442f235c201ccb5f6b8c8b026baaaf0dce597c0dd610ebbc4aa2d078cbd6fdc2dd879a9f3216edaabd965d85fe04a202615c5c608b0caf7db24dc084d0d86e560ccb75e209941a2945bab450795b96cc4f03752163825f1be62d009038f29f25956f3e93648ea647af4fbea52a19bbf16074ed39161cfd1a1695176059cbfc48c57755fb1b1b397155171a0b11e10d3f476512b73687912265ccb6f1fef5aa5dee1ffc3a5ecc574a76d529b884f819f859c015aa3977230a69657d71d54b5cfebcc135a4010294fdc98db45e933cfeca0d638b1f3f42c863be5501c105ebc0efc4a8dd2e48fdc4f35a590685b1c073f6dd368fa4ac1af60469f5ac0d209445259a5ec1ce1ce59fad2dd60bb11eae2a678095d997b69733553933371b083e1f94d5bd71db9fc9167068f45651f9de7b7cfa30e6f54f65e2c9f1a6d88ff7beff94532af43ce9067db85fd36795a8ad841889285f4f27d740d8da1429b0764f789f314e20f5a08258b4bdfd75d7b7b9cb4b0bb7c2ba469ac24545f2fbe0621bdaa76898cb6cb3bbd334c6b6394ef7e1cf31df2dd0b86089a654b942f6efb7ee5ba401200e0d727791fc3f978dcf446067cd054e66469ea05784e61ce67a1fe98a73d22962d703ad51ff1091920f111c2f1535197f872471fc2b482b55b15bfb7525c4c1b4d8b9a1b98534dcea58343e35e0ecb0164953604b8687315b886509cc26b8730bef8ef669e774666282da94192b67f0c4a56ff1f7b3a080e4f0e9ed767d497e8d31807169a7c62b80cc27c8e4907d59b02a9d5fd0b9aa8ed967bd26a1ad6bce39b562382ccfc6102d35d4cefd222eadfc4cffff96f16e69c4a7b7367dbf48a13c21c95ef3b3bf7e1fbb240854e6c40b8a8a8e957919e088d364e1da0c0130ae87b83e980f6f14a9cfafe8e956d489a03aac365767ec06cee5804ed81cfe559a8a5ed00e0ae964e2705d2c9011390ba6afd262b4527144ce8b64d438ebddd94eb2ce39c6c254547f0d427b4abf5217c9588f96dc393517bfab250153321ddced8e2dbb52454e342a4831af575c5420b5d3742aa9ae79e3e71873117fd36c856e1c0317b4ad2d1d3fe38b528eb3438210e14d10e5d2d9feff9d81f6fdefde57da710db7f72e03d154aba61bacccd26c0a80fe710f55eb5bb59db2c0aec7f1003fb4f1ffd219932bc8e7f4f7ced086f6c30677610e78a6e8e04dc330cd2da1ffb181ae09b5b52b9ea366bea88329e2c2d6f5168b1b2b7ac118861a56cdc43402d89d626344a127a7cb39a3f2e1a8ae35b72fac0b8eb83622cd944fe86bc8f340ea1a081fb980c9e6baa8ef9c1b37d11b13d51e0cf72aac6dbfab949f8443d4f3098f9b022ea0fa25dd418f9cc26d0b8358ddd778204fd9da6374a46c4cc1777485accb9c3975a1c12d9f3ac326a8e37ca3c1731a0b6f163a4335c1c589d52d8b82699c0c1b31b6b58a7d676d3eeca77a0b4ee289b11494a217031d464e32c28e7c1095afdad0297c5dd651ad1a856f330647a4ba7be0eee67eacee4a8137709b1234e07909fb464b5b4fef63e8829a9f066dcecb8c12cf91836cd7b7300b86ecea0f7467b2991832c83803e5f02e1b663e064e4bd991caa1bcadb38d984595233f6aa5c7079217ea5405e72a515e9f787d3d90a48cb098216f8ffa94ddd0bd8634d482f4ffcb96dd81e660a4324eb34f6";
+  const messageBuffer = Buffer.from(messageHex_1, "hex");
+
+  it("parses a hex buffer to an Message object", () => {
+    const message = Message.parse(messageBuffer);
+    expect(message).toBeDefined();
+  });
+
+  it("serializes an Message object back to the original hex string", () => {
+    const message = Message.parse(messageBuffer);
+    const serializedBuffer = Message.serializeJSON(message.toJSON());
+    expect(serializedBuffer.toString("hex")).toBe(messageHex_1);
+  });
 });
