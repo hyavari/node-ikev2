@@ -1,6 +1,6 @@
 ## IKEv2 Parser
 
-A TypeScript parser for Internet Key Exchange Version 2 (IKEv2) protocol, designed to parse, manipulate, and serialize IKEv2 packets. This parser breaks down IKEv2 messages into modular components, including headers, payloads, transforms, and proposals, for detailed inspection and modification.
+A TypeScript parser for Internet Key Exchange Version 2 (IKEv2) protocol, designed to parse, manipulate, and serialize IKEv2 packets based on [RFC 7296](https://datatracker.ietf.org/doc/html/rfc7296). This parser breaks down IKEv2 messages into modular components, including headers, payloads, transforms, and proposals, for detailed inspection and modification.
 
 ### Features
 
@@ -56,6 +56,12 @@ npm test
 ```
 
 Tests cover various cases, including parsing and serialization, to ensure reliability and stability.
+
+### Sample Wireshark Pcap
+
+You can check the message and their content in this Pcap sample from Wireshark:
+
+[Sample IKEv2 Wireshark Pcap](./pcap/capture.pcapng)
 
 ### Contributing
 
