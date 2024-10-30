@@ -64,6 +64,7 @@ export declare class Header {
     isResponse: boolean;
     messageID: number;
     length: number;
+    static headerLength: number;
     constructor(initiatorSPI: Buffer, responderSPI: Buffer, nextPayload: payloadType, majorVersion: number, minorVersion: number, exchangeType: exchangeType, isInitiator: boolean, canUseHigherVersion: boolean, isResponse: boolean, messageID: number, length: number);
     /**
      * Parses IKEv2 message header
