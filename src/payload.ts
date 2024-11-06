@@ -21,25 +21,25 @@ import { TrafficSelector } from "./selector";
 
 /**
  * IKEv2 Payload Types: \
-      Next Payload Type                Notation  Value
-      --------------------------------------------------
-      No Next Payload                             0 \
-      Security Association             SA         33 \
-      Key Exchange                     KE         34 \
-      Identification - Initiator       IDi        35 \
-      Identification - Responder       IDr        36 \
-      Certificate                      CERT       37 \
-      Certificate Request              CERTREQ    38 \
-      Authentication                   AUTH       39 \
-      Nonce                            Ni, Nr     40 \
-      Notify                           N          41 \
-      Delete                           D          42 \
-      Vendor ID                        V          43 \
-      Traffic Selector - Initiator     TSi        44 \
-      Traffic Selector - Responder     TSr        45 \
-      Encrypted and Authenticated      SK         46 \
-      Configuration                    CP         47 \
-      Extensible Authentication        EAP        48 \
+    Next Payload Type                Notation  Value
+    --------------------------------------------------
+    No Next Payload                             0 \
+    Security Association             SA         33 \
+    Key Exchange                     KE         34 \
+    Identification - Initiator       IDi        35 \
+    Identification - Responder       IDr        36 \
+    Certificate                      CERT       37 \
+    Certificate Request              CERTREQ    38 \
+    Authentication                   AUTH       39 \
+    Nonce                            Ni, Nr     40 \
+    Notify                           N          41 \
+    Delete                           D          42 \
+    Vendor ID                        V          43 \
+    Traffic Selector - Initiator     TSi        44 \
+    Traffic Selector - Responder     TSr        45 \
+    Encrypted and Authenticated      SK         46 \
+    Configuration                    CP         47 \
+    Extensible Authentication        EAP        48
 */
 export enum payloadType {
   NONE = 0,

@@ -44,15 +44,22 @@ export class Message {
   /**
    * Parses IKEv2 message
    * @param buffer - Buffer containing the message
+   * @param headerOnly - If only header is needed (default: false)
    * @returns {Message}
    */
-  public static parse(packet: Buffer | string): Message {
+  public static parse(packet: Buffer | string, headerOnly: Boolean = false): Message {
     try {
       if (typeof packet === "string") {
         packet = Buffer.from(packet, "hex");
       }
 
       const header = Header.parse(packet);
+
+      // If only header is needed
+      if (headerOnly) {
+        return new Message(header, []);
+      }
+
       let nextPayload = header.nextPayload;
 
       let offset = Header.headerLength;

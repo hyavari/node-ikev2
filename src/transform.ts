@@ -19,14 +19,12 @@ import { Attribute } from "./attribute";
 */
 
 /**
- * Transform Type Values 
-                                Transform    Used In
-                                  Type
-    RESERVED                        0
-    Encryption Algorithm (ENCR)     1       (IKE and ESP)
-    Pseudo-random Function (PRF)    2       (IKE)
-    Integrity Algorithm (INTEG)     3       (IKE, AH, optional in ESP)
-    Diffie-Hellman Group (D-H)      4       (IKE, optional in AH & ESP)
+ * Transform Type Values: \
+    RESERVED                        0 \
+    Encryption Algorithm (ENCR)     1       (IKE and ESP) \
+    Pseudo-random Function (PRF)    2       (IKE) \
+    Integrity Algorithm (INTEG)     3       (IKE, AH, optional in ESP) \
+    Diffie-Hellman Group (D-H)      4       (IKE, optional in AH & ESP) \
     Extended Sequence Numbers (ESN) 5       (AH and ESP)
 */
 export enum transformType {
@@ -38,20 +36,20 @@ export enum transformType {
 }
 
 /**
- * For Transform Type 1 (Encryption Algorithm), defined Transform IDs are:
-    RESERVED           0
-    ENCR_DES_IV64      1
-    ENCR_DES           2
-    ENCR_3DES          3
-    ENCR_RC5           4
-    ENCR_IDEA          5
-    ENCR_CAST          6
-    ENCR_BLOWFISH      7
-    ENCR_3IDEA         8
-    ENCR_DES_IV32      9
-    RESERVED           10
-    ENCR_NULL          11
-    ENCR_AES_CBC       12
+ * For Transform Type 1 (Encryption Algorithm), defined Transform IDs are: \
+    RESERVED           0 \
+    ENCR_DES_IV64      1 \
+    ENCR_DES           2 \
+    ENCR_3DES          3 \
+    ENCR_RC5           4 \
+    ENCR_IDEA          5 \
+    ENCR_CAST          6 \
+    ENCR_BLOWFISH      7 \
+    ENCR_3IDEA         8 \
+    ENCR_DES_IV32      9 \
+    RESERVED           10 \
+    ENCR_NULL          11 \
+    ENCR_AES_CBC       12 \
     ENCR_AES_CTR       13
 */
 export enum encrId {
@@ -85,12 +83,11 @@ export enum encrId {
 }
 
 /**
- * For Transform Type 2 (Pseudo-random Function), defined Transform IDs are:
-    Name                     Number
-    RESERVED                    0
-    PRF_HMAC_MD5                1
-    PRF_HMAC_SHA1               2
-    PRF_HMAC_TIGER              3
+ * For Transform Type 2 (Pseudo-random Function), defined Transform IDs are: \
+    RESERVED                    0 \
+    PRF_HMAC_MD5                1 \
+    PRF_HMAC_SHA1               2 \
+    PRF_HMAC_TIGER              3 \
     PRF_AES128_XCBC             4
 */
 export enum prfId {
@@ -101,13 +98,12 @@ export enum prfId {
 }
 
 /**
- * For Transform Type 3 (Integrity Algorithm), defined Transform IDs are:
-    Name                     Number
-    NONE                       0
-    AUTH_HMAC_MD5_96           1
-    AUTH_HMAC_SHA1_96          2
-    AUTH_DES_MAC               3
-    AUTH_KPDK_MD5              4
+ * For Transform Type 3 (Integrity Algorithm), defined Transform IDs are: \
+    NONE                       0 \
+    AUTH_HMAC_MD5_96           1 \
+    AUTH_HMAC_SHA1_96          2 \
+    AUTH_DES_MAC               3 \
+    AUTH_KPDK_MD5              4 \
     AUTH_AES_XCBC_96           5
 */
 export enum integId {
@@ -120,16 +116,16 @@ export enum integId {
 }
 
 /**
- * For Transform Type 4 (Diffie-Hellman Group), defined Transform IDs are:
-    Name                              Number
-    NONE                               0
-    Defined in Appendix B              1 - 2
-    RESERVED                           3 - 4
-    Defined in [ADDGROUP]              5
-    RESERVED TO IANA                   6 - 13
-    Defined in [ADDGROUP]              14 - 18
-    RESERVED TO IANA                   19 - 1023
-    PRIVATE USE                        1024-65535
+ * For Transform Type 4 (Diffie-Hellman Group), defined Transform IDs are: \
+    RESERVED                    0 \
+    DH_768_BIT_MODP             1 \
+    DH_1024_BIT_MODP            2 \
+    DH_1536_BIT_MODP            5 \
+    DH_2048_BIT_MODP            14 \
+    DH_3072_BIT_MODP            15 \
+    DH_4096_BIT_MODP            16 \
+    DH_6144_BIT_MODP            17 \
+    DH_8192_BIT_MODP            18
 */
 export enum dhId {
   NONE = 0,
@@ -144,10 +140,9 @@ export enum dhId {
 }
 
 /**
- * For Transform Type 5 (Extended Sequence Numbers), defined Transform IDs are:
-    Name                             Number
-    No Extended Sequence Numbers       0
-    Extended Sequence Numbers          1
+ * For Transform Type 5 (Extended Sequence Numbers), defined Transform IDs are: \
+    No Extended Sequence Numbers       0 \
+    Extended Sequence Numbers          1 \
     RESERVED                           2 - 65535
 */
 export enum esnId {

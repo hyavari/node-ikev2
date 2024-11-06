@@ -22,17 +22,12 @@ import { payloadType } from "./payload";
 */
 
 /**
- * Indicates the type of exchange being used.  
- * The values are as follows:\
- * Exchange-Type            Value \
-    RESERVED                 0-33 \
-    IKE_SA_INIT              34 \
-    IKE_AUTH                 35 \
-    CREATE_CHILD_SA          36 \
-    INFORMATIONAL            37 \
-    RESERVED TO IANA         38-239 \
-    Reserved for private use 240-255
-*/
+ * IKEv2 Exchange Types: \
+ * IKE_SA_INIT = 34 \
+ * IKE_AUTH = 35 \
+ * CREATE_CHILD_SA = 36 \
+ * INFORMATIONAL = 37
+ */
 export enum exchangeType {
   IKE_SA_INIT = 34,
   IKE_AUTH = 35,
