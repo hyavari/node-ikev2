@@ -78,7 +78,9 @@ export class Proposal {
       buffer.copy(spi, 0, 8, 8 + spiSize);
     }
 
-    const transforms = this.parseTransforms(buffer.subarray(8 + spiSize, length));
+    const transforms = this.parseTransforms(
+      buffer.subarray(8 + spiSize, length)
+    );
 
     return new Proposal(
       lastSubstructure,

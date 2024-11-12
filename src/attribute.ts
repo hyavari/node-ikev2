@@ -24,7 +24,7 @@ export class Attribute {
     public format: number, // 0=TLV (Type/Length/Value), 1=TV (Type/Value)
     public type: number,
     public value: Buffer,
-    public length?: number
+    public length: number = 0
   ) {}
 
   /**
@@ -71,7 +71,7 @@ export class Attribute {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
-    const length = this.length ?? 0; // Use value length if length is not set
+    const length = this.length; // Use value length if length is not set
     const buffer = Buffer.alloc(4 + length); // Allocate the buffer based on length
 
     // Write format (1 bit) and type (15 bits) as a 16-bit value

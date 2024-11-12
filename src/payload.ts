@@ -64,7 +64,7 @@ export enum payloadType {
 /**
  * IKEv2 Generic Payload Header
  * @class
- * @property {payloadType} type
+ * @property {payloadType}
  * @property {payloadType} nextPayload - 1 byte
  * @property {boolean} critical - 1 bit
  * @property {number} length - 2 bytes
@@ -146,6 +146,10 @@ export class Payload {
     prettyJson.critical = prettyJson.critical ? "Critical" : "Non-critical";
     return JSON.stringify(prettyJson, null, 2);
   }
+
+  public toJSON(): Record<string, any> {
+    return {};
+  }
 }
 
 /**
@@ -156,11 +160,18 @@ export class Payload {
 export class PayloadSA extends Payload {
   constructor(
     public nextPayload: payloadType,
-    public critical: boolean,
-    public length: number,
-    public proposals: Proposal[]
+    public proposals: Proposal[],
+    public critical: boolean = false,
+    public length: number = 0
   ) {
-    super(payloadType.SA, nextPayload, critical, length);
+    super(
+      payloadType.SA,
+      nextPayload,
+      critical,
+      length > 0
+        ? length
+        : 4 + proposals.reduce((acc, prop) => acc + prop.length, 0)
+    );
   }
 
   /**
@@ -186,9 +197,9 @@ export class PayloadSA extends Payload {
 
     return new PayloadSA(
       genericPayload.nextPayload,
+      proposals,
       genericPayload.critical,
-      genericPayload.length,
-      proposals
+      genericPayload.length
     );
   }
 
@@ -273,12 +284,17 @@ export class PayloadSA extends Payload {
 export class PayloadKE extends Payload {
   constructor(
     public nextPayload: payloadType,
-    public critical: boolean,
-    public length: number,
     public dhGroup: number,
-    public keyData: Buffer
+    public keyData: Buffer,
+    public critical: boolean = false,
+    public length: number = 0
   ) {
-    super(payloadType.KE, nextPayload, critical, length);
+    super(
+      payloadType.KE,
+      nextPayload,
+      critical,
+      length > 0 ? length : 8 + keyData.length
+    );
   }
 
   /**
@@ -295,10 +311,10 @@ export class PayloadKE extends Payload {
 
     return new PayloadKE(
       genericPayload.nextPayload,
-      genericPayload.critical,
-      genericPayload.length,
       dhGroup,
-      keyData
+      keyData,
+      genericPayload.critical,
+      genericPayload.length
     );
   }
 
@@ -378,12 +394,17 @@ export enum IDType {
 class PayloadID extends Payload {
   constructor(
     public nextPayload: payloadType,
-    public critical: boolean,
-    public length: number,
     public idType: number,
-    public idData: Buffer
+    public idData: Buffer,
+    public critical: boolean = false,
+    public length: number = 0
   ) {
-    super(payloadType.NONE, nextPayload, critical, length);
+    super(
+      payloadType.NONE,
+      nextPayload,
+      critical,
+      length > 0 ? length : 5 + idData.length
+    );
   }
 
   /**
@@ -400,10 +421,10 @@ class PayloadID extends Payload {
 
     return new PayloadID(
       genericPayload.nextPayload,
-      genericPayload.critical,
-      genericPayload.length,
       idType,
-      idData
+      idData,
+      genericPayload.critical,
+      genericPayload.length
     );
   }
 
@@ -469,12 +490,18 @@ class PayloadID extends Payload {
 export class PayloadIDi extends PayloadID {
   constructor(
     public nextPayload: payloadType,
-    public critical: boolean,
-    public length: number,
     public idType: number,
-    public idData: Buffer
+    public idData: Buffer,
+    public critical: boolean = false,
+    public length: number = 0
   ) {
-    super(nextPayload, critical, length, idType, idData);
+    super(
+      nextPayload,
+      idType,
+      idData,
+      critical,
+      length > 0 ? length : 5 + idData.length
+    );
     this.type = payloadType.IDi;
   }
 }
@@ -487,12 +514,18 @@ export class PayloadIDi extends PayloadID {
 export class PayloadIDr extends PayloadID {
   constructor(
     public nextPayload: payloadType,
-    public critical: boolean,
-    public length: number,
     public idType: number,
-    public idData: Buffer
+    public idData: Buffer,
+    public critical: boolean,
+    public length: number
   ) {
-    super(nextPayload, critical, length, idType, idData);
+    super(
+      nextPayload,
+      idType,
+      idData,
+      critical,
+      length > 0 ? length : 5 + idData.length
+    );
     this.type = payloadType.IDr;
   }
 }
@@ -527,12 +560,17 @@ export enum CertificateType {
 export class PayloadCERT extends Payload {
   constructor(
     public nextPayload: payloadType,
-    public critical: boolean,
-    public length: number,
     public certEncoding: number,
-    public certData: Buffer
+    public certData: Buffer,
+    public critical: boolean = false,
+    public length: number = 0
   ) {
-    super(payloadType.CERT, nextPayload, critical, length);
+    super(
+      payloadType.CERT,
+      nextPayload,
+      critical,
+      length > 0 ? length : 5 + certData.length
+    );
   }
 
   /**
@@ -549,10 +587,10 @@ export class PayloadCERT extends Payload {
 
     return new PayloadCERT(
       genericPayload.nextPayload,
-      genericPayload.critical,
-      genericPayload.length,
       certEncoding,
-      certData
+      certData,
+      genericPayload.critical,
+      genericPayload.length
     );
   }
 
@@ -616,12 +654,17 @@ export class PayloadCERT extends Payload {
 export class PayloadCERTREQ extends Payload {
   constructor(
     public nextPayload: payloadType,
-    public critical: boolean,
-    public length: number,
     public certEncoding: number,
-    public certAuthority: Buffer
+    public certAuthority: Buffer,
+    public critical: boolean = false,
+    public length: number = 0
   ) {
-    super(payloadType.CERTREQ, nextPayload, critical, length);
+    super(
+      payloadType.CERTREQ,
+      nextPayload,
+      critical,
+      length > 0 ? length : 5 + certAuthority.length
+    );
   }
 
   /**
@@ -638,10 +681,10 @@ export class PayloadCERTREQ extends Payload {
 
     return new PayloadCERTREQ(
       genericPayload.nextPayload,
-      genericPayload.critical,
-      genericPayload.length,
       certEncoding,
-      certAuthority
+      certAuthority,
+      genericPayload.critical,
+      genericPayload.length
     );
   }
 
@@ -705,12 +748,17 @@ export class PayloadCERTREQ extends Payload {
 export class PayloadAUTH extends Payload {
   constructor(
     public nextPayload: payloadType,
-    public critical: boolean,
-    public length: number,
     public authMethod: number,
-    public authData: Buffer
+    public authData: Buffer,
+    public critical: boolean = false,
+    public length: number = 0
   ) {
-    super(payloadType.AUTH, nextPayload, critical, length);
+    super(
+      payloadType.AUTH,
+      nextPayload,
+      critical,
+      length > 0 ? length : 5 + authData.length
+    );
   }
 
   /**
@@ -727,10 +775,10 @@ export class PayloadAUTH extends Payload {
 
     return new PayloadAUTH(
       genericPayload.nextPayload,
-      genericPayload.critical,
-      genericPayload.length,
       authMethod,
-      authData
+      authData,
+      genericPayload.critical,
+      genericPayload.length
     );
   }
 
@@ -796,11 +844,16 @@ export class PayloadAUTH extends Payload {
 export class PayloadNONCE extends Payload {
   constructor(
     public nextPayload: payloadType,
-    public critical: boolean,
-    public length: number,
-    public nonceData: Buffer
+    public nonceData: Buffer,
+    public critical: boolean = false,
+    public length: number = 0
   ) {
-    super(payloadType.NONCE, nextPayload, critical, length);
+    super(
+      payloadType.NONCE,
+      nextPayload,
+      critical,
+      length > 0 ? length : 4 + nonceData.length
+    );
   }
 
   /**
@@ -816,9 +869,9 @@ export class PayloadNONCE extends Payload {
 
     return new PayloadNONCE(
       genericPayload.nextPayload,
+      nonceData,
       genericPayload.critical,
-      genericPayload.length,
-      nonceData
+      genericPayload.length
     );
   }
 
@@ -963,15 +1016,20 @@ export enum notifyMessageType {
 export class PayloadNOTIFY extends Payload {
   constructor(
     public nextPayload: payloadType,
-    public critical: boolean,
-    public length: number,
     public protocolId: number,
     public spiSize: number,
     public notifyType: number,
     public spi: Buffer,
-    public notifyData: Buffer
+    public notifyData: Buffer,
+    public critical: boolean = false,
+    public length: number = 0
   ) {
-    super(payloadType.NOTIFY, nextPayload, critical, length);
+    super(
+      payloadType.NOTIFY,
+      nextPayload,
+      critical,
+      length > 0 ? length : 8 + spi.length + notifyData.length
+    );
   }
 
   /**
@@ -991,13 +1049,13 @@ export class PayloadNOTIFY extends Payload {
 
     return new PayloadNOTIFY(
       genericPayload.nextPayload,
-      genericPayload.critical,
-      genericPayload.length,
       protocolId,
       spiSize,
       notifyType,
       spi,
-      notifyData
+      notifyData,
+      genericPayload.critical,
+      genericPayload.length
     );
   }
 
@@ -1076,14 +1134,19 @@ export class PayloadNOTIFY extends Payload {
 export class PayloadDELETE extends Payload {
   constructor(
     public nextPayload: payloadType,
-    public critical: boolean,
-    public length: number,
     public protocolId: number,
     public spiSize: number,
     public numSpi: number,
-    public spis: Buffer[]
+    public spis: Buffer[],
+    public critical: boolean = false,
+    public length: number = 0
   ) {
-    super(payloadType.DELETE, nextPayload, critical, length);
+    super(
+      payloadType.DELETE,
+      nextPayload,
+      critical,
+      length > 0 ? length : 8 + spiSize * numSpi
+    );
   }
 
   /**
@@ -1109,12 +1172,12 @@ export class PayloadDELETE extends Payload {
 
     return new PayloadDELETE(
       genericPayload.nextPayload,
-      genericPayload.critical,
-      genericPayload.length,
       protocolId,
       spiSize,
       numSpi,
-      spis
+      spis,
+      genericPayload.critical,
+      genericPayload.length
     );
   }
 
@@ -1202,11 +1265,16 @@ export class PayloadDELETE extends Payload {
 export class PayloadVENDOR extends Payload {
   constructor(
     public nextPayload: payloadType,
-    public critical: boolean,
-    public length: number,
-    public vendorId: Buffer
+    public vendorId: Buffer,
+    public critical: boolean = false,
+    public length: number = 0
   ) {
-    super(payloadType.VENDOR, nextPayload, critical, length);
+    super(
+      payloadType.VENDOR,
+      nextPayload,
+      critical,
+      length > 0 ? length : 4 + vendorId.length
+    );
   }
 
   /**
@@ -1222,9 +1290,9 @@ export class PayloadVENDOR extends Payload {
 
     return new PayloadVENDOR(
       genericPayload.nextPayload,
+      vendorId,
       genericPayload.critical,
-      genericPayload.length,
-      vendorId
+      genericPayload.length
     );
   }
 
@@ -1285,12 +1353,17 @@ export class PayloadVENDOR extends Payload {
 export class PayloadTS extends Payload {
   constructor(
     public nextPayload: payloadType,
-    public critical: boolean,
-    public length: number,
     public numTs: number,
-    public tsList: TrafficSelector[]
+    public tsList: TrafficSelector[],
+    public critical: boolean = false,
+    public length: number = 0
   ) {
-    super(payloadType.NONE, nextPayload, critical, length);
+    super(
+      payloadType.NONE,
+      nextPayload,
+      critical,
+      length > 0 ? length : 5 + tsList.reduce((acc, ts) => acc + ts.length, 0)
+    );
   }
 
   /**
@@ -1316,10 +1389,10 @@ export class PayloadTS extends Payload {
 
     return new PayloadTS(
       genericPayload.nextPayload,
-      genericPayload.critical,
-      genericPayload.length,
       numTs,
-      tsList
+      tsList,
+      genericPayload.critical,
+      genericPayload.length
     );
   }
 
@@ -1404,12 +1477,18 @@ export class PayloadTS extends Payload {
 export class PayloadTSi extends PayloadTS {
   constructor(
     public nextPayload: payloadType,
-    public critical: boolean,
-    public length: number,
     public numTs: number,
-    public tsList: TrafficSelector[]
+    public tsList: TrafficSelector[],
+    public critical: boolean = false,
+    public length: number = 0
   ) {
-    super(nextPayload, critical, length, numTs, tsList);
+    super(
+      nextPayload,
+      numTs,
+      tsList,
+      critical,
+      length > 0 ? length : 5 + tsList.reduce((acc, ts) => acc + ts.length, 0)
+    );
     this.type = payloadType.TSi;
   }
 }
@@ -1422,12 +1501,18 @@ export class PayloadTSi extends PayloadTS {
 export class PayloadTSr extends PayloadTS {
   constructor(
     public nextPayload: payloadType,
-    public critical: boolean,
-    public length: number,
     public numTs: number,
-    public tsList: TrafficSelector[]
+    public tsList: TrafficSelector[],
+    public critical: boolean = false,
+    public length: number = 0
   ) {
-    super(nextPayload, critical, length, numTs, tsList);
+    super(
+      nextPayload,
+      numTs,
+      tsList,
+      critical,
+      length > 0 ? length : 5 + tsList.reduce((acc, ts) => acc + ts.length, 0)
+    );
     this.type = payloadType.TSr;
   }
 }
@@ -1440,11 +1525,16 @@ export class PayloadTSr extends PayloadTS {
 export class PayloadSK extends Payload {
   constructor(
     public nextPayload: payloadType,
-    public critical: boolean,
-    public length: number,
-    public encryptedData: Buffer
+    public encryptedData: Buffer,
+    public critical: boolean = false,
+    public length: number = 0
   ) {
-    super(payloadType.SK, nextPayload, critical, length);
+    super(
+      payloadType.SK,
+      nextPayload,
+      critical,
+      length > 0 ? length : 4 + encryptedData.length
+    );
   }
 
   /**
@@ -1460,9 +1550,9 @@ export class PayloadSK extends Payload {
 
     return new PayloadSK(
       genericPayload.nextPayload,
+      encryptedData,
       genericPayload.critical,
-      genericPayload.length,
-      encryptedData
+      genericPayload.length
     );
   }
 
@@ -1545,12 +1635,17 @@ export enum cfgType {
 export class PayloadCP extends Payload {
   constructor(
     public nextPayload: payloadType,
-    public critical: boolean,
-    public length: number,
     public cfgType: number,
-    public cfgData: Buffer
+    public cfgData: Buffer,
+    public critical: boolean = false,
+    public length: number = 0
   ) {
-    super(payloadType.CP, nextPayload, critical, length);
+    super(
+      payloadType.CP,
+      nextPayload,
+      critical,
+      length > 0 ? length : 5 + cfgData.length
+    );
   }
 
   /**
@@ -1567,10 +1662,10 @@ export class PayloadCP extends Payload {
 
     return new PayloadCP(
       genericPayload.nextPayload,
-      genericPayload.critical,
-      genericPayload.length,
       cfgType,
-      cfgData
+      cfgData,
+      genericPayload.critical,
+      genericPayload.length
     );
   }
 
@@ -1636,11 +1731,16 @@ export class PayloadCP extends Payload {
 export class PayloadEAP extends Payload {
   constructor(
     public nextPayload: payloadType,
-    public critical: boolean,
-    public length: number,
-    public tlvData: Attribute
+    public tlvData: Attribute,
+    public critical: boolean = false,
+    public length: number = 0
   ) {
-    super(payloadType.EAP, nextPayload, critical, length);
+    super(
+      payloadType.EAP,
+      nextPayload,
+      critical,
+      length > 0 ? length : 4 + tlvData.length
+    );
   }
 
   /**
@@ -1656,9 +1756,9 @@ export class PayloadEAP extends Payload {
 
     return new PayloadEAP(
       genericPayload.nextPayload,
+      tlvData,
       genericPayload.critical,
-      genericPayload.length,
-      tlvData
+      genericPayload.length
     );
   }
 

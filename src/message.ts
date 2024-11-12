@@ -29,7 +29,7 @@ import {
  */
 export class Message {
   public header: Header;
-  public payloads: any[];
+  public payloads: Payload[];
 
   /**
    * @constructor
@@ -47,7 +47,10 @@ export class Message {
    * @param headerOnly - If only header is needed (default: false)
    * @returns {Message}
    */
-  public static parse(packet: Buffer | string, headerOnly: Boolean = false): Message {
+  public static parse(
+    packet: Buffer | string,
+    headerOnly: Boolean = false
+  ): Message {
     try {
       if (typeof packet === "string") {
         packet = Buffer.from(packet, "hex");
@@ -137,7 +140,7 @@ export class Message {
   public toJSON(): Record<string, any> {
     return {
       header: this.header.toJSON(),
-      payloads: this.payloads.map((payload) => payload.toJSON()),
+      payloads: this.payloads.map((payload: Payload) => payload.toJSON()),
     };
   }
 
