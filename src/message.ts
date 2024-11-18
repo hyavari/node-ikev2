@@ -155,4 +155,22 @@ export class Message {
       .join(",\n");
     return `Header:\n ${header}\nPayloads:\n ${payloads}`;
   }
+
+  /**
+   * Gets the payloads of the given type
+   * @param type
+   * @returns Payload[] | undefined
+   */
+  public getPayloads(type: payloadType): Payload[] | undefined {
+    return this.payloads.filter((payload) => payload.type === type);
+  }
+
+  /**
+   * Gets the payload of the given type
+   * @param type
+   * @returns
+   */
+  public getPayload(type: payloadType): Payload | undefined {
+    return this.getPayloads(type)?.[0];
+  }
 }

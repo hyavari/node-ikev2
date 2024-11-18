@@ -55,23 +55,27 @@ export class TrafficSelector {
    * @returns {TrafficSelector}
    */
   public static parse(buffer: Buffer): TrafficSelector {
-    const type = buffer.readUInt8(0);
-    const protocolId = buffer.readUInt8(1);
-    const length = buffer.readUInt16BE(2);
-    const startPort = buffer.readUInt16BE(4);
-    const endPort = buffer.readUInt16BE(6);
-    const startAddress = buffer.subarray(8, 12);
-    const endAddress = buffer.subarray(12, 16);
+    try {
+      const type = buffer.readUInt8(0);
+      const protocolId = buffer.readUInt8(1);
+      const length = buffer.readUInt16BE(2);
+      const startPort = buffer.readUInt16BE(4);
+      const endPort = buffer.readUInt16BE(6);
+      const startAddress = buffer.subarray(8, 12);
+      const endAddress = buffer.subarray(12, 16);
 
-    return new TrafficSelector(
-      type,
-      protocolId,
-      length,
-      startPort,
-      endPort,
-      startAddress,
-      endAddress
-    );
+      return new TrafficSelector(
+        type,
+        protocolId,
+        length,
+        startPort,
+        endPort,
+        startAddress,
+        endAddress
+      );
+    } catch (error) {
+      throw new Error("Failed to parse traffic selector");
+    }
   }
 
   /**

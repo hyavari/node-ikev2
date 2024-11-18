@@ -35,16 +35,20 @@ export class Attribute {
    * @returns {Attribute}
    */
   public static parse(buffer: Buffer): Attribute {
-    const format = buffer.readUInt8(0) >> 7;
-    const type = buffer.readUInt16BE(0) & 0x7fff;
+    try {
+      const format = buffer.readUInt8(0) >> 7;
+      const type = buffer.readUInt16BE(0) & 0x7fff;
 
-    if (format === 0) {
-      const length = buffer.readUInt16BE(2);
-      const value = buffer.subarray(4, 4 + length);
-      return new Attribute(format, type, value, length);
-    } else {
-      const value = buffer.subarray(2, buffer.length);
-      return new Attribute(format, type, value);
+      if (format === 0) {
+        const length = buffer.readUInt16BE(2);
+        const value = buffer.subarray(4, 4 + length);
+        return new Attribute(format, type, value, length);
+      } else {
+        const value = buffer.subarray(2, buffer.length);
+        return new Attribute(format, type, value);
+      }
+    } catch (error) {
+      throw new Error("Failed to parse attribute");
     }
   }
 

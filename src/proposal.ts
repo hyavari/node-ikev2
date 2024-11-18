@@ -66,32 +66,36 @@ export class Proposal {
    * @returns {Proposal}
    */
   public static parse(buffer: Buffer): Proposal {
-    const lastSubstructure = buffer.readUInt8(0); // First octet
-    const length = buffer.readUInt16BE(2);
-    const proposalNumber = buffer.readUInt8(4);
-    const protocolId = buffer.readUInt8(5);
-    const spiSize = buffer.readUInt8(6);
-    const numTransforms = buffer.readUInt8(7);
-    const spi = Buffer.alloc(spiSize);
+    try {
+      const lastSubstructure = buffer.readUInt8(0); // First octet
+      const length = buffer.readUInt16BE(2);
+      const proposalNumber = buffer.readUInt8(4);
+      const protocolId = buffer.readUInt8(5);
+      const spiSize = buffer.readUInt8(6);
+      const numTransforms = buffer.readUInt8(7);
+      const spi = Buffer.alloc(spiSize);
 
-    if (spiSize > 0) {
-      buffer.copy(spi, 0, 8, 8 + spiSize);
+      if (spiSize > 0) {
+        buffer.copy(spi, 0, 8, 8 + spiSize);
+      }
+
+      const transforms = this.parseTransforms(
+        buffer.subarray(8 + spiSize, length)
+      );
+
+      return new Proposal(
+        lastSubstructure,
+        length,
+        proposalNumber,
+        protocolId,
+        spiSize,
+        numTransforms,
+        spi,
+        transforms
+      );
+    } catch (error) {
+      throw new Error("Failed to parse proposal");
     }
-
-    const transforms = this.parseTransforms(
-      buffer.subarray(8 + spiSize, length)
-    );
-
-    return new Proposal(
-      lastSubstructure,
-      length,
-      proposalNumber,
-      protocolId,
-      spiSize,
-      numTransforms,
-      spi,
-      transforms
-    );
   }
 
   /**

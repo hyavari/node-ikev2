@@ -82,51 +82,55 @@ export class Header {
       );
     }
 
-    let offset = 0;
+    try {
+      let offset = 0;
 
-    const initiatorSPI = buffer.subarray(offset, offset + 8);
-    offset += 8;
+      const initiatorSPI = buffer.subarray(offset, offset + 8);
+      offset += 8;
 
-    const responderSPI = buffer.subarray(offset, offset + 8);
-    offset += 8;
+      const responderSPI = buffer.subarray(offset, offset + 8);
+      offset += 8;
 
-    const nextPayloadByte = buffer.readUInt8(offset);
-    const nextPayload = nextPayloadByte as payloadType;
-    offset += 1;
+      const nextPayloadByte = buffer.readUInt8(offset);
+      const nextPayload = nextPayloadByte as payloadType;
+      offset += 1;
 
-    const majorVersion = buffer.readUInt8(offset) >> 4;
-    const minorVersion = buffer.readUInt8(offset) & 0x0f;
-    offset += 1;
+      const majorVersion = buffer.readUInt8(offset) >> 4;
+      const minorVersion = buffer.readUInt8(offset) & 0x0f;
+      offset += 1;
 
-    const exchangeTypeByte = buffer.readUInt8(offset);
-    const exchangeTypePayload = exchangeTypeByte as exchangeType;
-    offset += 1;
+      const exchangeTypeByte = buffer.readUInt8(offset);
+      const exchangeTypePayload = exchangeTypeByte as exchangeType;
+      offset += 1;
 
-    const flags = buffer.readUInt8(offset);
-    const isInitiator = Boolean(flags & 0x08);
-    const canUseHigherVersion = Boolean(flags & 0x10);
-    const isResponse = Boolean(flags & 0x20);
-    offset += 1;
+      const flags = buffer.readUInt8(offset);
+      const isInitiator = Boolean(flags & 0x08);
+      const canUseHigherVersion = Boolean(flags & 0x10);
+      const isResponse = Boolean(flags & 0x20);
+      offset += 1;
 
-    const messageID = buffer.readUInt32BE(offset);
-    offset += 4;
+      const messageID = buffer.readUInt32BE(offset);
+      offset += 4;
 
-    const length = buffer.readUInt32BE(offset);
-    offset += 4;
+      const length = buffer.readUInt32BE(offset);
+      offset += 4;
 
-    return new Header(
-      initiatorSPI,
-      responderSPI,
-      nextPayload,
-      majorVersion,
-      minorVersion,
-      exchangeTypePayload,
-      isInitiator,
-      canUseHigherVersion,
-      isResponse,
-      messageID,
-      length
-    );
+      return new Header(
+        initiatorSPI,
+        responderSPI,
+        nextPayload,
+        majorVersion,
+        minorVersion,
+        exchangeTypePayload,
+        isInitiator,
+        canUseHigherVersion,
+        isResponse,
+        messageID,
+        length
+      );
+    } catch (error) {
+      throw new Error("Failed to parse message header");
+    }
   }
 
   /**

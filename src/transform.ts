@@ -187,16 +187,20 @@ export class Transform {
    * @returns {Transform}
    */
   public static parse(buffer: Buffer): Transform {
-    const lastSubstructure = buffer.readUInt8(0); // First octet
-    const length = buffer.readUInt16BE(2); // Transform Length starts at byte 2
-    const type = buffer.readUInt8(4); // Transform Type at byte 4
-    const id = buffer.readUInt16BE(6); // Transform ID starts at byte 6
+    try {
+      const lastSubstructure = buffer.readUInt8(0); // First octet
+      const length = buffer.readUInt16BE(2); // Transform Length starts at byte 2
+      const type = buffer.readUInt8(4); // Transform Type at byte 4
+      const id = buffer.readUInt16BE(6); // Transform ID starts at byte 6
 
-    // Attributes start at byte 8 onward
-    const attributesBuffer = buffer.subarray(8, length);
-    const attributes = this.parseAttributes(attributesBuffer);
+      // Attributes start at byte 8 onward
+      const attributesBuffer = buffer.subarray(8, length);
+      const attributes = this.parseAttributes(attributesBuffer);
 
-    return new Transform(lastSubstructure, length, type, id, attributes);
+      return new Transform(lastSubstructure, length, type, id, attributes);
+    } catch (error) {
+      throw new Error("Failed to parse transform");
+    }
   }
 
   /**

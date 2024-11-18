@@ -85,11 +85,15 @@ export class Payload {
    * @returns
    */
   public static parse(buffer: Buffer): Payload {
-    const nextPayload = buffer.readUInt8(0);
-    const critical = (buffer.readUInt8(1) & 0x80) === 0x80;
-    const length = buffer.readUInt16BE(2);
+    try {
+      const nextPayload = buffer.readUInt8(0);
+      const critical = (buffer.readUInt8(1) & 0x80) === 0x80;
+      const length = buffer.readUInt16BE(2);
 
-    return new Payload(payloadType.NONE, nextPayload, critical, length);
+      return new Payload(payloadType.NONE, nextPayload, critical, length);
+    } catch (error) {
+      throw new Error("Failed to parse generic payload header");
+    }
   }
 
   /**
