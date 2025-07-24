@@ -35,20 +35,47 @@ export class Attribute {
    * @returns {Attribute}
    */
   public static parse(buffer: Buffer): Attribute {
+    if (!Buffer.isBuffer(buffer)) {
+      throw new Error("Input must be a Buffer");
+    }
+
+    if (buffer.length < 2) {
+      throw new Error(
+        "Buffer too short for attribute header (minimum 2 bytes)"
+      );
+    }
+
     try {
       const format = buffer.readUInt8(0) >> 7;
       const type = buffer.readUInt16BE(0) & 0x7fff;
 
       if (format === 0) {
+        // TLV format: Type(2) + Length(2) + Value(n)
+        if (buffer.length < 4) {
+          throw new Error("Buffer too short for TLV attribute length field");
+        }
+
         const length = buffer.readUInt16BE(2);
+
+        if (buffer.length < 4 + length) {
+          throw new Error(
+            `Buffer too short for TLV attribute value. Expected ${4 + length} bytes, got ${buffer.length}`
+          );
+        }
+
         const value = buffer.subarray(4, 4 + length);
         return new Attribute(format, type, value, length);
       } else {
+        // TV format: Type(2) + Value(n)
         const value = buffer.subarray(2, buffer.length);
-        return new Attribute(format, type, value);
+        return new Attribute(format, type, value, value.length);
       }
     } catch (error) {
-      throw new Error("Failed to parse attribute");
+      if (error instanceof Error) {
+        throw new Error(`Failed to parse attribute: ${error.message}`);
+      }
+
+      throw new Error("Failed to parse attribute: Unknown error");
     }
   }
 
@@ -75,22 +102,32 @@ export class Attribute {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
-    const length = this.length; // Use value length if length is not set
-    const buffer = Buffer.alloc(4 + length); // Allocate the buffer based on length
-
-    // Write format (1 bit) and type (15 bits) as a 16-bit value
-    buffer.writeUInt16BE((this.format << 15) | this.type, 0);
-
     if (this.format === 0) {
-      // Write the length for TLV (Type-Length-Value) format
-      buffer.writeUInt16BE(length, 2);
-      this.value.copy(buffer, 4); // Copy the value into the buffer starting at byte 4
-    } else {
-      // For TV (Type-Value) format, only copy the value starting at byte 2
-      this.value.copy(buffer, 2);
-    }
+      // TLV format: Type(2) + Length(2) + Value(n)
+      const buffer = Buffer.alloc(4 + this.length);
 
-    return buffer;
+      // Write format (1 bit) and type (15 bits) as a 16-bit value
+      buffer.writeUInt16BE((this.format << 15) | this.type, 0);
+
+      // Write the length for TLV (Type-Length-Value) format
+      buffer.writeUInt16BE(this.length, 2);
+
+      // Copy the value into the buffer starting at byte 4
+      this.value.copy(buffer, 4);
+
+      return buffer;
+    } else {
+      // TV format: Type(2) + Value(n)
+      const buffer = Buffer.alloc(2 + this.value.length);
+
+      // Write format (1 bit) and type (15 bits) as a 16-bit value
+      buffer.writeUInt16BE((this.format << 15) | this.type, 0);
+
+      // Copy the value starting at byte 2
+      this.value.copy(buffer, 2);
+
+      return buffer;
+    }
   }
   /**
    * Convert object to JSON

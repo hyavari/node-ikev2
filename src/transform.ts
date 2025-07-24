@@ -246,13 +246,58 @@ export class Transform {
    * @returns {Attribute[]}
    */
   private static parseAttributes(buffer: Buffer): Attribute[] {
+    if (!Buffer.isBuffer(buffer)) {
+      throw new Error("Input must be a Buffer");
+    }
+
     const attributes: Attribute[] = [];
     let offset = 0;
+    const maxIterations = 1000; // Prevent infinite loops
+    let iterationCount = 0;
 
-    while (offset < buffer.length) {
-      const attribute = Attribute.parse(buffer.subarray(offset));
-      attributes.push(attribute);
-      offset += attribute.length || 4;
+    while (offset < buffer.length && iterationCount < maxIterations) {
+      iterationCount++;
+
+      // Ensure we have at least 2 bytes for the attribute header
+      if (offset + 2 > buffer.length) {
+        throw new Error("Buffer too short for attribute header");
+      }
+
+      try {
+        const attribute = Attribute.parse(buffer.subarray(offset));
+        attributes.push(attribute);
+
+        // Calculate the actual length of the parsed attribute
+        const attributeLength =
+          attribute.length > 0
+            ? attribute.format === 0
+              ? 4 + attribute.length
+              : 2 + attribute.value.length
+            : 4; // Minimum fallback length
+
+        offset += attributeLength;
+
+        // Safety check: ensure we're making progress
+        if (attributeLength <= 0) {
+          throw new Error("Invalid attribute length: must be greater than 0");
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          throw new Error(
+            `Failed to parse attribute at offset ${offset}: ${error.message}`
+          );
+        }
+
+        throw new Error(
+          `Failed to parse attribute at offset ${offset}: Unknown error`
+        );
+      }
+    }
+
+    if (iterationCount >= maxIterations) {
+      throw new Error(
+        "Too many attributes parsed, possible infinite loop detected"
+      );
     }
 
     return attributes;
@@ -265,13 +310,12 @@ export class Transform {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
-    // First calculate the length of attributes (sum of all attributes' length)
-    const attributesBuffer = Buffer.concat(
-      this.attributes.map((attr) => attr.serialize())
+    // Calculate total length first
+    const attributesLength = this.attributes.reduce(
+      (acc, attr) => acc + attr.serialize().length,
+      0
     );
-
-    // Set length to total length (8 bytes for fixed fields + length of attributes)
-    const totalLength = 8 + attributesBuffer.length;
+    const totalLength = 8 + attributesLength;
 
     // Allocate a buffer with the exact length
     const buffer = Buffer.alloc(totalLength);
@@ -284,8 +328,14 @@ export class Transform {
     buffer.writeUInt8(0, 5); // Reserved (1 byte)
     buffer.writeUInt16BE(this.id, 6); // Transform ID (2 bytes)
 
-    // Copy the attributes buffer starting at byte 8
-    attributesBuffer.copy(buffer, 8);
+    // Copy attributes directly into buffer instead of using Buffer.concat
+    let offset = 8;
+
+    for (const attribute of this.attributes) {
+      const attributeBuffer = attribute.serialize();
+      attributeBuffer.copy(buffer, offset);
+      offset += attributeBuffer.length;
+    }
 
     return buffer;
   }

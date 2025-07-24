@@ -143,7 +143,13 @@ export class Proposal {
       spi.copy(buffer, 8);
     }
 
-    Buffer.concat(transformsBuffer).copy(buffer, 8 + spiSize);
+    // Copy transforms directly into buffer instead of using Buffer.concat
+    let offset = 8 + spiSize;
+
+    for (const transformBuffer of transformsBuffer) {
+      transformBuffer.copy(buffer, offset);
+      offset += transformBuffer.length;
+    }
 
     return buffer;
   }

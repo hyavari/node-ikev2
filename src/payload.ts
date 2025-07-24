@@ -86,12 +86,44 @@ export class Payload {
    */
   public static parse(buffer: Buffer): Payload {
     try {
+      // Input validation
+      if (!Buffer.isBuffer(buffer)) {
+        throw new Error("Input must be a Buffer");
+      }
+
+      // Check minimum buffer length for payload header (4 bytes)
+      if (buffer.length < 4) {
+        throw new Error(
+          `Buffer too short for payload header. Expected at least 4 bytes, got ${buffer.length}`
+        );
+      }
+
       const nextPayload = buffer.readUInt8(0);
       const critical = (buffer.readUInt8(1) & 0x80) === 0x80;
       const length = buffer.readUInt16BE(2);
 
+      // Validate payload length
+      if (length < 4) {
+        throw new Error(
+          `Invalid payload length. Must be at least 4 bytes, got ${length}`
+        );
+      }
+
+      // Check if buffer contains the full payload
+      if (buffer.length < length) {
+        throw new Error(
+          `Buffer too short for declared payload length. Expected ${length} bytes, got ${buffer.length}`
+        );
+      }
+
       return new Payload(payloadType.NONE, nextPayload, critical, length);
     } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(
+          `Failed to parse generic payload header: ${error.message}`
+        );
+      }
+
       throw new Error("Failed to parse generic payload header");
     }
   }
@@ -104,11 +136,61 @@ export class Payload {
    * @returns {Buffer}
    */
   public static serializeJSON(json: Record<string, any>): Buffer {
-    const buffer = Buffer.alloc(4);
-    buffer.writeUInt8(json.nextPayload, 0);
-    buffer.writeUInt8(json.critical ? 0x80 : 0, 1);
-    buffer.writeUInt16BE(json.length, 2);
-    return buffer;
+    try {
+      // Input validation
+      if (!json || typeof json !== "object") {
+        throw new Error("JSON input must be a valid object");
+      }
+
+      // Validate required fields
+      if (typeof json.nextPayload === "undefined") {
+        throw new Error("nextPayload is required");
+      }
+
+      if (typeof json.length === "undefined") {
+        throw new Error("length is required");
+      }
+
+      // Validate data types
+      if (
+        !Number.isInteger(json.nextPayload) ||
+        json.nextPayload < 0 ||
+        json.nextPayload > 255
+      ) {
+        throw new Error(
+          `nextPayload must be a valid 8-bit unsigned integer (0-255), got ${json.nextPayload}`
+        );
+      }
+
+      if (
+        !Number.isInteger(json.length) ||
+        json.length < 4 ||
+        json.length > 65535
+      ) {
+        throw new Error(
+          `length must be a valid 16-bit unsigned integer (4-65535), got ${json.length}`
+        );
+      }
+
+      // Validate critical flag
+      if (typeof json.critical !== "boolean") {
+        throw new Error(
+          `critical must be a boolean, got ${typeof json.critical}`
+        );
+      }
+
+      const buffer = Buffer.alloc(4);
+      buffer.writeUInt8(json.nextPayload, 0);
+      buffer.writeUInt8(json.critical ? 0x80 : 0, 1);
+      buffer.writeUInt16BE(json.length, 2);
+      return buffer;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(`Failed to serialize payload JSON: ${error.message}`);
+      }
+
+      throw new Error("Failed to serialize payload JSON");
+    }
   }
 
   /**
@@ -128,6 +210,15 @@ export class Payload {
    * Returns a JSON representation of the payload
    * @public
    * @returns {Record<string, any>}
+   */
+  public toJSON(): Record<string, any> {
+    return {};
+  }
+
+  /**
+   * Returns a string representation of the payload
+   * @public
+   * @returns {string}
    */
   public genToJSON(): Record<string, any> {
     return {
@@ -149,10 +240,6 @@ export class Payload {
     prettyJson.nextPayload = `${payloadType[prettyJson.nextPayload]} (${prettyJson.nextPayload})`;
     prettyJson.critical = prettyJson.critical ? "Critical" : "Non-critical";
     return JSON.stringify(prettyJson, null, 2);
-  }
-
-  public toJSON(): Record<string, any> {
-    return {};
   }
 }
 
@@ -188,15 +275,53 @@ export class PayloadSA extends Payload {
   public static parse(buffer: Buffer): PayloadSA {
     const genericPayload = Payload.parse(buffer);
 
+    // Validate that buffer is at least as long as the declared payload length
+    if (buffer.length < genericPayload.length) {
+      throw new Error(
+        `Buffer too short for declared payload length. Expected at least ${genericPayload.length} bytes, got ${buffer.length}`
+      );
+    }
+
     const proposals: Proposal[] = [];
     let offset = 4;
 
     while (offset < genericPayload.length) {
-      const proposal = Proposal.parse(
-        buffer.subarray(offset, genericPayload.length)
-      );
+      // Check if we have enough data for the next proposal header (8 bytes minimum)
+      if (offset + 8 > genericPayload.length) {
+        throw new Error(
+          `Insufficient data for proposal header at offset ${offset}. Need at least 8 bytes, have ${genericPayload.length - offset}`
+        );
+      }
+
+      // Read proposal length from the buffer to determine exact slice size
+      const proposalLength = buffer.readUInt16BE(offset + 2);
+
+      // Validate proposal length
+      if (proposalLength < 8) {
+        throw new Error(
+          `Invalid proposal length. Must be at least 8 bytes, got ${proposalLength}`
+        );
+      }
+
+      // Check if we have enough data for the complete proposal
+      if (offset + proposalLength > genericPayload.length) {
+        throw new Error(
+          `Insufficient data for complete proposal at offset ${offset}. Need ${proposalLength} bytes, have ${genericPayload.length - offset}`
+        );
+      }
+
+      // Pass only the exact buffer slice for this proposal
+      const proposalBuffer = buffer.subarray(offset, offset + proposalLength);
+      const proposal = Proposal.parse(proposalBuffer);
       proposals.push(proposal);
-      offset += proposal.length;
+      offset += proposalLength;
+
+      // Safety check to prevent infinite loops
+      if (offset > genericPayload.length) {
+        throw new Error(
+          `Proposal parsing exceeded payload length. Offset: ${offset}, Payload length: ${genericPayload.length}`
+        );
+      }
     }
 
     return new PayloadSA(
@@ -310,6 +435,21 @@ export class PayloadKE extends Payload {
    */
   public static parse(buffer: Buffer): PayloadKE {
     const genericPayload = Payload.parse(buffer);
+
+    // Validate that buffer is at least as long as the declared payload length
+    if (buffer.length < genericPayload.length) {
+      throw new Error(
+        `Buffer too short for declared payload length. Expected at least ${genericPayload.length} bytes, got ${buffer.length}`
+      );
+    }
+
+    // Check if we have enough data for dhGroup (2 bytes) and reserved field (2 bytes)
+    if (genericPayload.length < 8) {
+      throw new Error(
+        `Payload too short for KE payload. Expected at least 8 bytes, got ${genericPayload.length}`
+      );
+    }
+
     const dhGroup = buffer.readUInt16BE(4);
     const keyData = buffer.subarray(8, genericPayload.length);
 
@@ -330,13 +470,60 @@ export class PayloadKE extends Payload {
    * @returns {Buffer}
    */
   public static serializeJSON(json: Record<string, any>): Buffer {
-    const buffer = Buffer.alloc(json.length);
-    const genericPayload = Payload.serializeJSON(json);
-    genericPayload.copy(buffer);
-    buffer.writeUInt16BE(json.dhGroup, 4);
-    buffer.writeUInt16LE(0, 6); // Reserved
-    Buffer.from(json.keyData, "hex").copy(buffer, 8);
-    return buffer;
+    try {
+      // Input validation
+      if (!json || typeof json !== "object") {
+        throw new Error("JSON input must be a valid object");
+      }
+
+      // Validate required fields
+      if (typeof json.dhGroup === "undefined") {
+        throw new Error("dhGroup is required");
+      }
+
+      if (typeof json.keyData === "undefined") {
+        throw new Error("keyData is required");
+      }
+
+      // Validate dhGroup
+      if (
+        !Number.isInteger(json.dhGroup) ||
+        json.dhGroup < 0 ||
+        json.dhGroup > 65535
+      ) {
+        throw new Error(
+          `dhGroup must be a valid 16-bit unsigned integer (0-65535), got ${json.dhGroup}`
+        );
+      }
+
+      // Validate keyData
+      if (typeof json.keyData !== "string") {
+        throw new Error(
+          `keyData must be a hex string, got ${typeof json.keyData}`
+        );
+      }
+
+      // Validate hex string format
+      if (!/^[0-9a-fA-F]*$/.test(json.keyData)) {
+        throw new Error("keyData must be a valid hex string");
+      }
+
+      const buffer = Buffer.alloc(json.length);
+      const genericPayload = Payload.serializeJSON(json);
+      genericPayload.copy(buffer);
+      buffer.writeUInt16BE(json.dhGroup, 4);
+      buffer.writeUInt16BE(0, 6); // Reserved - use big-endian for consistency
+      Buffer.from(json.keyData, "hex").copy(buffer, 8);
+      return buffer;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(
+          `Failed to serialize KE payload JSON: ${error.message}`
+        );
+      }
+
+      throw new Error("Failed to serialize KE payload JSON");
+    }
   }
 
   /**
@@ -348,7 +535,7 @@ export class PayloadKE extends Payload {
     const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
     buffer.writeUInt16BE(this.dhGroup, 4);
-    buffer.writeUInt16LE(0, 6); // Reserved
+    buffer.writeUInt16BE(0, 6); // Reserved
     this.keyData.copy(buffer, 8);
     return buffer;
   }
@@ -395,7 +582,7 @@ export enum IDType {
  * @class
  * @extends Payload
  */
-class PayloadID extends Payload {
+export class PayloadID extends Payload {
   constructor(
     public nextPayload: payloadType,
     public idType: number,
@@ -420,8 +607,23 @@ class PayloadID extends Payload {
    */
   public static parse(buffer: Buffer): PayloadID {
     const genericPayload = Payload.parse(buffer);
+
+    // Validate that buffer is at least as long as the declared payload length
+    if (buffer.length < genericPayload.length) {
+      throw new Error(
+        `Buffer too short for declared payload length. Expected at least ${genericPayload.length} bytes, got ${buffer.length}`
+      );
+    }
+
+    // Check if we have enough data for idType (1 byte) and reserved field (3 bytes)
+    if (genericPayload.length < 8) {
+      throw new Error(
+        `Payload too short for ID payload. Expected at least 8 bytes, got ${genericPayload.length}`
+      );
+    }
+
     const idType = buffer.readUInt8(4);
-    const idData = buffer.subarray(5, genericPayload.length);
+    const idData = buffer.subarray(8, genericPayload.length);
 
     return new PayloadID(
       genericPayload.nextPayload,
@@ -440,13 +642,63 @@ class PayloadID extends Payload {
    * @returns {Buffer}
    */
   public static serializeJSON(json: Record<string, any>): Buffer {
-    const buffer = Buffer.alloc(json.length);
-    const genericPayload = Payload.serializeJSON(json);
-    genericPayload.copy(buffer);
-    buffer.writeUInt8(json.idType, 4);
-    buffer.writeIntLE(0, 5, 3); // Reserved
-    Buffer.from(json.idData, "hex").copy(buffer, 8);
-    return buffer;
+    try {
+      // Input validation
+      if (!json || typeof json !== "object") {
+        throw new Error("JSON input must be a valid object");
+      }
+
+      // Validate required fields
+      if (typeof json.idType === "undefined") {
+        throw new Error("idType is required");
+      }
+
+      if (typeof json.idData === "undefined") {
+        throw new Error("idData is required");
+      }
+
+      // Validate idType
+      if (
+        !Number.isInteger(json.idType) ||
+        json.idType < 0 ||
+        json.idType > 255
+      ) {
+        throw new Error(
+          `idType must be a valid 8-bit unsigned integer (0-255), got ${json.idType}`
+        );
+      }
+
+      // Validate idData
+      if (typeof json.idData !== "string") {
+        throw new Error(
+          `idData must be a hex string, got ${typeof json.idData}`
+        );
+      }
+
+      // Validate hex string format
+      if (!/^[0-9a-fA-F]*$/.test(json.idData)) {
+        throw new Error("idData must be a valid hex string");
+      }
+
+      const buffer = Buffer.alloc(json.length);
+      const genericPayload = Payload.serializeJSON(json);
+      genericPayload.copy(buffer);
+      buffer.writeUInt8(json.idType, 4);
+      // Write 3-byte reserved field as zeros in big-endian order
+      buffer.writeUInt8(0, 5);
+      buffer.writeUInt8(0, 6);
+      buffer.writeUInt8(0, 7);
+      Buffer.from(json.idData, "hex").copy(buffer, 8);
+      return buffer;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new Error(
+          `Failed to serialize ID payload JSON: ${error.message}`
+        );
+      }
+
+      throw new Error("Failed to serialize ID payload JSON");
+    }
   }
 
   /**
@@ -458,7 +710,10 @@ class PayloadID extends Payload {
     const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
     buffer.writeUInt8(this.idType, 4);
-    buffer.writeIntLE(0, 5, 3); // Reserved
+    // Write 3-byte reserved field as zeros in big-endian order
+    buffer.writeUInt8(0, 5);
+    buffer.writeUInt8(0, 6);
+    buffer.writeUInt8(0, 7);
     this.idData.copy(buffer, 8);
     return buffer;
   }
@@ -586,6 +841,21 @@ export class PayloadCERT extends Payload {
    */
   public static parse(buffer: Buffer): PayloadCERT {
     const genericPayload = Payload.parse(buffer);
+
+    // Validate that buffer is at least as long as the declared payload length
+    if (buffer.length < genericPayload.length) {
+      throw new Error(
+        `Buffer too short for declared payload length. Expected at least ${genericPayload.length} bytes, got ${buffer.length}`
+      );
+    }
+
+    // Check if we have enough data for certEncoding (1 byte)
+    if (genericPayload.length < 5) {
+      throw new Error(
+        `Payload too short for CERT payload. Expected at least 5 bytes, got ${genericPayload.length}`
+      );
+    }
+
     const certEncoding = buffer.readUInt8(4);
     const certData = buffer.subarray(5, genericPayload.length);
 
@@ -798,7 +1068,10 @@ export class PayloadAUTH extends Payload {
     const genericPayload = Payload.serializeJSON(json);
     genericPayload.copy(buffer);
     buffer.writeUInt8(json.authMethod, 4);
-    buffer.writeIntLE(0, 5, 3); // Reserved
+    // Write 3-byte reserved field as zeros in big-endian order
+    buffer.writeUInt8(0, 5);
+    buffer.writeUInt8(0, 6);
+    buffer.writeUInt8(0, 7);
     Buffer.from(json.authData, "hex").copy(buffer, 8);
     return buffer;
   }
@@ -812,7 +1085,10 @@ export class PayloadAUTH extends Payload {
     const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
     buffer.writeUInt8(this.authMethod, 4);
-    buffer.writeIntLE(0, 5, 3); // Reserved
+    // Write 3-byte reserved field as zeros in big-endian order
+    buffer.writeUInt8(0, 5);
+    buffer.writeUInt8(0, 6);
+    buffer.writeUInt8(0, 7);
     this.authData.copy(buffer, 8);
     return buffer;
   }
@@ -1609,10 +1885,9 @@ export class PayloadSK extends Payload {
   }
 
   /**
-   * Decrypts the SK payload using the provided key
-   * @param key
+   * Decrypts the encrypted data in the SK payload
    * @public
-   * @returns {Buffer}
+   * @returns {Buffer} Decrypted data
    */
   public decrypt(): Buffer {
     // Implement decryption logic here
@@ -1685,7 +1960,10 @@ export class PayloadCP extends Payload {
     const genericPayload = Payload.serializeJSON(json);
     genericPayload.copy(buffer);
     buffer.writeUInt8(json.cfgType, 4);
-    buffer.writeIntLE(0, 5, 3); // Reserved
+    // Write 3-byte reserved field as zeros in big-endian order
+    buffer.writeUInt8(0, 5);
+    buffer.writeUInt8(0, 6);
+    buffer.writeUInt8(0, 7);
     Buffer.from(json.cfgData, "hex").copy(buffer, 8);
     return buffer;
   }
@@ -1699,7 +1977,10 @@ export class PayloadCP extends Payload {
     const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
     buffer.writeUInt8(this.cfgType, 4);
-    buffer.writeIntLE(0, 5, 3); // Reserved
+    // Write 3-byte reserved field as zeros in big-endian order
+    buffer.writeUInt8(0, 5);
+    buffer.writeUInt8(0, 6);
+    buffer.writeUInt8(0, 7);
     this.cfgData.copy(buffer, 8);
     return buffer;
   }
@@ -1817,9 +2098,18 @@ export class PayloadEAP extends Payload {
 }
 
 /**
+ * Base interface for all payload classes
+ */
+interface PayloadClass {
+  new (...args: any[]): Payload;
+  parse(buffer: Buffer): Payload;
+  serializeJSON(json: Record<string, any>): Buffer;
+}
+
+/**
  * Payload Type to its class mapping for IKEv2 payloads
  */
-export const payloadTypeMapping: Record<payloadType, any> = {
+export const payloadTypeMapping: Record<payloadType, PayloadClass> = {
   [payloadType.NONE]: Payload,
   [payloadType.SA]: PayloadSA,
   [payloadType.KE]: PayloadKE,
