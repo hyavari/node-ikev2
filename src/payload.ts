@@ -1205,6 +1205,22 @@ export class PayloadNONCE extends Payload {
 }
 
 /**
+ * IKEv2 Protocol Id
+ * @enum
+ */
+export enum securityProtocolId {
+  // 0 - Reserved
+  IKE = 1, // Internet Key Exchange (RFC 7296)
+  AH = 2, // Authentication Header (RFC 7296)
+  ESP = 3, // Encapsulating Security Payload (RFC 7296)
+  FC_ESP_HEADER = 4, // RFC 4595
+  FC_CT_AUTHENTICATION = 5, // RFC 4595
+  GIKE_UPDATE = 6, // RFC-ietf-ipsecme-g-ikev2-21
+  // 7-200 Unassigned
+  // 201-255 - Reserved for Private Use
+}
+
+/**
  * IKEv2 Notify Message Types
  * @enum
  */
@@ -1296,7 +1312,7 @@ export enum notifyMessageType {
 export class PayloadNOTIFY extends Payload {
   constructor(
     public nextPayload: payloadType,
-    public protocolId: number,
+    public protocolId: securityProtocolId,
     public spiSize: number,
     public notifyType: number,
     public spi: Buffer,
@@ -1402,7 +1418,7 @@ export class PayloadNOTIFY extends Payload {
    */
   public toString(): string {
     const genericString = super.genToString();
-    return `${genericString}\nprotocolId: ${this.protocolId}\nspiSize: ${this.spiSize}\nnotifyType: ${notifyMessageType[this.notifyType]} (${this.notifyType})\nspi: "${this.spi?.toString("hex") ?? "N/A"}"\nnotifyData: "${this.notifyData.toString("hex")}"`;
+    return `${genericString}\nprotocolId: ${securityProtocolId[this.protocolId]}\nspiSize: ${this.spiSize}\nnotifyType: ${notifyMessageType[this.notifyType]} (${this.notifyType})\nspi: "${this.spi?.toString("hex") ?? "N/A"}"\nnotifyData: "${this.notifyData.toString("hex")}"`;
   }
 }
 
