@@ -50,36 +50,71 @@ export enum transformType {
     RESERVED           10 \
     ENCR_NULL          11 \
     ENCR_AES_CBC       12 \
-    ENCR_AES_CTR       13
+    ENCR_AES_CTR       13 \
+    ENCR_AES_CCM_8     14 \
+    ENCR_AES_CCM_12    15 \
+    ENCR_AES_CCM_16    16 \
+    RESERVED           17 \
+    AES_GCM_8_OCTET_ICV 18 \
+    AES_GCM_12_OCTET_ICV 19 \
+    AES_GCM_16_OCTET_ICV 20 \
+    ENCR_NULL_AUTH_AES_GMAC 21 \
+    RESERVED_FOR_IEEE_P1619_XTS_AES 22 \
+    ENCR_CAMELLIA_CBC  23 \
+    ENCR_CAMELLIA_CTR  24 \
+    ENCR_CAMELLIA_CCM_8_OCTET_ICV 25 \
+    ENCR_CAMELLIA_CCM_12_OCTET_ICV 26 \
+    ENCR_CAMELLIA_CCM_16_OCTET_ICV 27 \
+    ENCR_CHACHA20_POLY1305 28 \
+    ENCR_AES_CCM_8_IIV 29 \
+    ENCR_AES_CCM_16_IIV 30 \
+    ENCR_CHACHA20_POLY1305_IIV 31 \
+    ENCR_KUZNYECHIK_MGM_KTREE 32 \
+    ENCR_MAGMA_MGM_KTREE 33 \
+    ENCR_KUZNYECHIK_MGM_MAC_KTREE 34 \
+    ENCR_MAGMA_MGM_MAC_KTREE 35 \
+    36-1023 Unassigned \
+    1024-65535 Reserved for Private Use
 */
 export enum encrId {
-  ENCR_DES_IV64 = 1,
-  ENCR_DES = 2,
-  ENCR_DES3 = 3,
-  ENCR_RC5 = 4,
-  ENCR_IDEA = 5,
-  ENCR_CAST = 6,
-  ENCR_BLOWFISH = 7,
-  ENCR_3IDEA = 8,
-  ENCR_DES_IV32 = 9,
-  ENCR_NULL = 11,
-  ENCR_AES_CBC = 12,
-  ENCR_AES_CTR = 13,
-  ENCR_AES_CCM_8 = 14, // [RFC4309]
-  ENCR_AES_CCM_12 = 15, // [RFC4309]
-  ENCR_AES_CCM_16 = 16, // [RFC4309]
-  UNASSIGNED = 17,
-  AES_GCM_8_OCTET_ICV = 18, // [RFC4106]
-  AES_GCM_12_OCTET_ICV = 19, // [RFC4106]
-  AES_GCM_16_OCTET_ICV = 20, // [RFC4106]
-  ENCR_NULL_AUTH_AES_GMAC = 21, // [RFC4543]
+  // RESERVED = 0,
+  ENCR_DES_IV64 = 1, // Deprecated by [RFC9395]
+  ENCR_DES = 2, // [RFC2405] - Deprecated by [RFC8247]
+  ENCR_DES3 = 3, // [RFC2451]
+  ENCR_RC5 = 4, // [RFC2451] - Deprecated by [RFC9395]
+  ENCR_IDEA = 5, // [RFC2451] - Deprecated by [RFC9395]
+  ENCR_CAST = 6, // [RFC2451] - Deprecated by [RFC9395]
+  ENCR_BLOWFISH = 7, // [RFC2451] - Deprecated by [RFC9395]
+  ENCR_3IDEA = 8, // Deprecated by [RFC9395]
+  ENCR_DES_IV32 = 9, // Deprecated by [RFC9395]
+  // RESERVED = 10,
+  ENCR_NULL = 11, // [RFC2410] - Not allowed for IKEv2
+  ENCR_AES_CBC = 12, // [RFC3602]
+  ENCR_AES_CTR = 13, // [RFC3686] [RFC5930]
+  ENCR_AES_CCM_8 = 14, // [RFC4309] [RFC5282]
+  ENCR_AES_CCM_12 = 15, // [RFC4309] [RFC5282]
+  ENCR_AES_CCM_16 = 16, // [RFC4309] [RFC5282]
+  // UNASSIGNED = 17,
+  AES_GCM_8_OCTET_ICV = 18, // [RFC4106] [RFC5282] RFC[8247]
+  AES_GCM_12_OCTET_ICV = 19, // [RFC4106] [RFC5282] RFC[8247]
+  AES_GCM_16_OCTET_ICV = 20, // [RFC4106] [RFC5282] RFC[8247]
+  ENCR_NULL_AUTH_AES_GMAC = 21, // [RFC4543] - Not allowed for IKEv2
   RESERVED_FOR_IEEE_P1619_XTS_AES = 22, // [Ball]
   ENCR_CAMELLIA_CBC = 23, // [RFC5529]
   ENCR_CAMELLIA_CTR = 24, // [RFC5529]
-  ENCR_CAMELLIA_CCM_8_OCTET_ICV = 25, // [RFC5529]
-  ENCR_CAMELLIA_CCM_12_OCTET_ICV = 26, // [RFC5529]
-  ENCR_CAMELLIA_CCM_16_OCTET_ICV = 27, // [RFC5529]
-  ENCR_CHACHA20_POLY1305 = 28, // [RFC8439]
+  ENCR_CAMELLIA_CCM_8_OCTET_ICV = 25, // [RFC5529] RFC[8247]
+  ENCR_CAMELLIA_CCM_12_OCTET_ICV = 26, // [RFC5529] RFC[8247]
+  ENCR_CAMELLIA_CCM_16_OCTET_ICV = 27, // [RFC5529] RFC[8247]
+  ENCR_CHACHA20_POLY1305 = 28, // [RFC7634] [RFC8439]
+  ENCR_AES_CCM_8_IIV = 29, // [RFC8750] - Not allowed for IKEv2
+  ENCR_AES_CCM_16_IIV = 30, // [RFC8750] - Not allowed for IKEv2
+  ENCR_CHACHA20_POLY1305_IIV = 31, // [RFC8750] - Not allowed for IKEv2
+  ENCR_KUZNYECHIK_MGM_KTREE = 32, // [RFC9227]
+  ENCR_MAGMA_MGM_KTREE = 33, // [RFC9227]
+  ENCR_KUZNYECHIK_MGM_MAC_KTREE = 34, // [RFC9227] - Not allowed for IKEv2
+  ENCR_MAGMA_MGM_MAC_KTREE = 35, // [RFC9227] - Not allowed for IKEv2
+  // 36-1023 Unassigned
+  // 1024-65535 Reserved for Private Use
 }
 
 /**
@@ -88,13 +123,28 @@ export enum encrId {
     PRF_HMAC_MD5                1 \
     PRF_HMAC_SHA1               2 \
     PRF_HMAC_TIGER              3 \
-    PRF_AES128_XCBC             4
+    PRF_AES128_XCBC             4 \
+    PRF_HMAC_SHA2_256           5 \
+    PRF_HMAC_SHA2_384           6 \
+    PRF_HMAC_SHA2_512           7 \
+    PRF_AES128_CMAC             8 \
+    PRF_HMAC_STREEBOG_512       9 \
+    10-1023 Unassigned \
+    1024-65535 Reserved for Private Use
 */
 export enum prfId {
-  PRF_HMAC_MD5 = 1,
-  PRF_HMAC_SHA1 = 2,
-  PRF_HMAC_TIGER = 3,
-  PRF_AES128_XCBC = 4,
+  // RESERVED = 0,
+  PRF_HMAC_MD5 = 1, // [RFC2104] - Deprecated by [RFC8247]
+  PRF_HMAC_SHA1 = 2, // [RFC2104]
+  PRF_HMAC_TIGER = 3, // https://biham.cs.technion.ac.il/Reports/Tiger/tiger/tiger.html - Deprecated by [RFC9395]
+  PRF_AES128_XCBC = 4, // [RFC4434]
+  PRF_HMAC_SHA2_256 = 5, // [RFC4868]
+  PRF_HMAC_SHA2_384 = 6, // [RFC4868]
+  PRF_HMAC_SHA2_512 = 7, // [RFC4868]
+  PRF_AES128_CMAC = 8, // [RFC4615]
+  PRF_HMAC_STREEBOG_512 = 9, // [RFC9385]
+  // 10-1023 Unassigned
+  // 1024-65535 Reserved for Private Use
 }
 
 /**
@@ -104,15 +154,37 @@ export enum prfId {
     AUTH_HMAC_SHA1_96          2 \
     AUTH_DES_MAC               3 \
     AUTH_KPDK_MD5              4 \
-    AUTH_AES_XCBC_96           5
+    AUTH_AES_XCBC_96           5 \
+    AUTH_HMAC_MD5_128          6 \
+    AUTH_HMAC_SHA1_160         7 \
+    AUTH_AES_CMAC_96           8 \
+    AUTH_AES_128_GMAC          9 \
+    AUTH_AES_192_GMAC          10 \
+    AUTH_AES_256_GMAC          11 \
+    AUTH_HMAC_SHA2_256_128     12 \
+    AUTH_HMAC_SHA2_384_192     13 \
+    AUTH_HMAC_SHA2_512_256     14 \
+    15-1023 Unassigned \
+    1024-65535 Reserved for Private Use
 */
 export enum integId {
   NONE = 0,
-  AUTH_HMAC_MD5_96 = 1,
-  AUTH_HMAC_SHA1_96 = 2,
-  AUTH_DES_MAC = 3,
-  AUTH_KPDK_MD5 = 4,
-  AUTH_AES_XCBC_96 = 5,
+  AUTH_HMAC_MD5_96 = 1, // [RFC2403] - Deprecated by [RFC8247]
+  AUTH_HMAC_SHA1_96 = 2, // [RFC2404]
+  AUTH_DES_MAC = 3, // Deprecated by [RFC8247]
+  AUTH_KPDK_MD5 = 4, // Deprecated by [RFC8247]
+  AUTH_AES_XCBC_96 = 5, // [RFC3566]
+  AUTH_HMAC_MD5_128 = 6, // [RFC4595] - Deprecated by [RFC8247]
+  AUTH_HMAC_SHA1_160 = 7, // [RFC4595] - Deprecated by [RFC8247]
+  AUTH_AES_CMAC_96 = 8, // [RFC4494]
+  AUTH_AES_128_GMAC = 9, // [RFC4543]
+  AUTH_AES_192_GMAC = 10, // [RFC4543]
+  AUTH_AES_256_GMAC = 11, // [RFC4543]
+  AUTH_HMAC_SHA2_256_128 = 12, // [RFC4868]
+  AUTH_HMAC_SHA2_384_192 = 13, // [RFC4868]
+  AUTH_HMAC_SHA2_512_256 = 14, // [RFC4868]
+  // 15-1023 Unassigned
+  // 1024-65535 Reserved for Private Use
 }
 
 /**
@@ -120,23 +192,69 @@ export enum integId {
     RESERVED                    0 \
     DH_768_BIT_MODP             1 \
     DH_1024_BIT_MODP            2 \
+    3-4 Reserved \
     DH_1536_BIT_MODP            5 \
+    6-13 Unassigned \
     DH_2048_BIT_MODP            14 \
     DH_3072_BIT_MODP            15 \
     DH_4096_BIT_MODP            16 \
     DH_6144_BIT_MODP            17 \
-    DH_8192_BIT_MODP            18
+    DH_8192_BIT_MODP            18 \
+    DH_256_BIT_RANDOM_ECP       19 \
+    DH_384_BIT_RANDOM_ECP       20 \
+    DH_521_BIT_RANDOM_ECP       21 \
+    DH_1024_BIT_MODP_WITH_160_BIT_PRIME_ORDER 22 \
+    DH_2048_BIT_MODP_WITH_224_BIT_PRIME_ORDER 23 \
+    DH_2048_BIT_MODP_WITH_256_BIT_PRIME_ORDER 24 \
+    DH_192_BIT_RANDOM_ECP       25 \
+    DH_224_BIT_RANDOM_ECP       26 \
+    DH_BRAINPOOLP224R1          27 \
+    DH_BRAINPOOLP256R1          28 \
+    DH_BRAINPOOLP384R1          29 \
+    DH_BRAINPOOLP512R1          30 \
+    DH_CURVE25519               31 \
+    DH_CURVE448                 32 \
+    DH_GOST3410_2012_256        33 \
+    DH_GOST3410_2012_512        34 \
+    DH_ML_KEM_512              35 \
+    DH_ML_KEM_768               36 \
+    DH_ML_KEM_1024              37 \
+    38-1023 Unassigned \
+    1024-65535 Reserved for Private Use
 */
 export enum dhId {
   NONE = 0,
-  DH_768_bit = 1,
+  DH_768_bit = 1, // Deprecated by [RFC8247]
   DH_1024_bit = 2,
-  DH_1536_bit = 5,
-  DH_2048_bit = 14,
-  DH_3072_bit = 15,
-  DH_4096_bit = 16,
-  DH_6144_bit = 17,
-  DH_8192_bit = 18,
+  // 3-4 Reserved
+  DH_1536_bit = 5, // [RFC3526]
+  // 6-13 Unassigned
+  DH_2048_bit = 14, // [RFC3526]
+  DH_3072_bit = 15, // [RFC3526]
+  DH_4096_bit = 16, // [RFC3526]
+  DH_6144_bit = 17, // [RFC3526]
+  DH_8192_bit = 18, // [RFC3526]
+  DH_256_bit_random_ECP = 19, // [RFC5903]
+  DH_384_bit_random_ECP = 20, // [RFC5903]
+  DH_521_bit_random_ECP = 21, // [RFC5903]
+  DH_1024_bit_with_160_bit_Prime_Order = 22, // [RFC5114] Deprecated by [RFC8247]
+  DH_2048_bit_with_224_bit_Prime_Order = 23, // [RFC5114]
+  DH_2048_bit_with_256_bit_Prime_Order = 24, // [RFC5114]
+  DH_192_bit_random_ECP = 25, // [RFC5114]
+  DH_224_bit_random_ECP = 26, // [RFC5114]
+  DH_brainpoolP224r1 = 27, // [RFC6954]
+  DH_brainpoolP256r1 = 28, // [RFC6954]
+  DH_brainpoolP384r1 = 29, // [RFC6954]
+  DH_brainpoolP512r1 = 30, // [RFC6954]
+  DH_Curve25519 = 31, // [RFC8031]
+  DH_Curve448 = 32, // [RFC8031]
+  DH_GOST3410_2012_256 = 33, // [RFC9385]
+  DH_GOST3410_2012_512 = 34, // [RFC9385]
+  DH_ml_kem_512 = 35,
+  DH_ml_kem_768 = 36,
+  DH_ml_kem_1024 = 37,
+  // 38-1023 Unassigned
+  // 1024-65535 Reserved for Private Use
 }
 
 /**
@@ -177,7 +295,7 @@ export class Transform {
     public type: transformType,
     public id: number,
     public attributes: Attribute[]
-  ) {}
+  ) { }
 
   /**
    * Parses a transform from a buffer
