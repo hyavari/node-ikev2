@@ -11,6 +11,10 @@
                             Data Attributes
 */
 
+export enum attributeType {
+  KeyLength = 14, // [RFC7296]
+}
+
 /**
  * Attribute class
  * @class
@@ -22,10 +26,10 @@
 export class Attribute {
   constructor(
     public format: number, // 0=TLV (Type/Length/Value), 1=TV (Type/Value)
-    public type: number,
+    public type: attributeType,
     public value: Buffer,
     public length: number = 0
-  ) {}
+  ) { }
 
   /**
    * Parses an attribute from a buffer

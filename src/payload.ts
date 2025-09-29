@@ -13,8 +13,8 @@ import { TrafficSelector } from "./selector";
 
                             Generic Payload Header
 
-    Critical bit: specifies the processing by the recipient in case the type 
-    of this payload is not understood: 
+    Critical bit: specifies the processing by the recipient in case the type
+    of this payload is not understood:
     - 0 payload skipped
     - 1 message rejected
 */
@@ -75,7 +75,7 @@ export class Payload {
     public nextPayload: payloadType,
     public critical: boolean = false, // default to false for all defined payloads in IKEv2
     public length: number
-  ) {}
+  ) { }
 
   /**
    * Parses a payload generic header from a buffer
@@ -1210,6 +1210,7 @@ export class PayloadNONCE extends Payload {
  */
 export enum securityProtocolId {
   // 0 - Reserved
+  NONE = 0, // Used for example in Notify payloads, when that doesn't apply to any SA
   IKE = 1, // Internet Key Exchange (RFC 7296)
   AH = 2, // Authentication Header (RFC 7296)
   ESP = 3, // Encapsulating Security Payload (RFC 7296)
@@ -2117,7 +2118,7 @@ export class PayloadEAP extends Payload {
  * Base interface for all payload classes
  */
 interface PayloadClass {
-  new (...args: any[]): Payload;
+  new(...args: any[]): Payload;
   parse(buffer: Buffer): Payload;
   serializeJSON(json: Record<string, any>): Buffer;
 }

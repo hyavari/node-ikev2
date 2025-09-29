@@ -1,4 +1,5 @@
 import { Transform } from "./transform";
+import { securityProtocolId } from "./payload";
 
 /**
  * Proposal Substructure
@@ -23,20 +24,13 @@ import { Transform } from "./transform";
     (8 for IKE, 4 for ESP and AH).
  */
 
-enum proposalProtocolId {
-  NONE = 0,
-  IKE = 1,
-  AH = 2,
-  ESP = 3,
-}
-
 /**
  * IKEv2 Proposal
  * @class
  * @property {number} lastSubstructure - Last Substructure (1 bit)
  * @property {number} length - 2 bytes
  * @property {number} proposalNumber - 1 byte
- * @property {proposalProtocolId} protocolId - 1 byte
+ * @property {securityProtocolId} protocolId - 1 byte
  * @property {Buffer} spiSize - 1 bytes (SPI Size)
  * @property {number} numTransforms - 1 byte (number of transforms)
  * @property {Buffer} spi - variable length
@@ -47,7 +41,7 @@ export class Proposal {
     public lastSubstructure: number,
     public length: number,
     public proposalNumber: number,
-    public protocolId: proposalProtocolId,
+    public protocolId: securityProtocolId,
     public spiSize: number,
     public numTransforms: number,
     public spi: Buffer,
@@ -186,8 +180,8 @@ export class Proposal {
   public serialize(): Buffer {
     const buffer = Buffer.alloc(
       8 +
-        this.spiSize +
-        this.transforms.reduce((acc, transform) => acc + transform.length, 0)
+      this.spiSize +
+      this.transforms.reduce((acc, transform) => acc + transform.length, 0)
     );
 
     buffer.writeUInt8(this.lastSubstructure, 0);
@@ -240,7 +234,7 @@ export class Proposal {
     const prettyJson = this.toJSON();
     prettyJson.lastSubstructure =
       this.lastSubstructure === 0 ? "None (0)" : "Proposal (2)";
-    prettyJson.protocolId = `${proposalProtocolId[prettyJson.protocolId]} (${prettyJson.protocolId})`;
+    prettyJson.protocolId = `${securityProtocolId[prettyJson.protocolId]} (${prettyJson.protocolId})`;
     prettyJson.transforms = this.transforms.map((transform) =>
       JSON.parse(transform.toString())
     );
