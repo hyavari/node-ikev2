@@ -1,4 +1,4 @@
-import { Attribute } from "./attribute";
+import { Attribute, attributeType } from "./attribute";
 
 /**
  * Transform Substructure
@@ -419,6 +419,26 @@ export class Transform {
     }
 
     return attributes;
+  }
+
+  public get AttributeKeyLength(): number | undefined {
+    let keyLengthAttribute = this.attributes?.find(attr => attr.type === attributeType.KeyLength);
+    if (keyLengthAttribute && keyLengthAttribute.value && keyLengthAttribute.value.length == 2) {
+      return keyLengthAttribute.value.readUInt16BE(0);
+    }
+    return undefined;
+  }
+
+  public set AttributeKeyLength(keyLength: number) {
+    let keyLengthBuffer = Buffer.alloc(2);
+    keyLengthBuffer.writeUInt16BE(keyLength, 0);
+    let keyLengthAttribute = this.attributes?.find(attr => attr.type === attributeType.KeyLength);
+    if (keyLengthAttribute) {
+      keyLengthAttribute.value = keyLengthBuffer;
+      keyLengthAttribute.length = 0;
+    } else {
+      this.attributes.push(new Attribute(1, attributeType.KeyLength, keyLengthBuffer, 2));
+    }
   }
 
   /**
