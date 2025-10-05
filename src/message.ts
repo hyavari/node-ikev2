@@ -41,6 +41,24 @@ export class Message {
     this.payloads = payloads;
   }
 
+  private static getBuffer(packet: Buffer | string): Buffer {
+    if (typeof packet === "string") {
+      if (packet.length === 0) {
+        throw new Error("Hex string cannot be empty");
+      }
+
+      if (!/^[0-9a-fA-F]+$/.test(packet)) {
+        throw new Error("Invalid hex string format");
+      }
+
+      return Buffer.from(packet, "hex");
+    } else if (Buffer.isBuffer(packet)) {
+      return packet;
+    } else {
+      throw new Error("Packet must be a Buffer or hex string");
+    }
+  }
+
   /**
    * Parses IKEv2 message
    * @param buffer - Buffer containing the message
@@ -57,22 +75,7 @@ export class Message {
         throw new Error("Packet data is required");
       }
 
-      let buffer: Buffer;
-      if (typeof packet === "string") {
-        if (packet.length === 0) {
-          throw new Error("Hex string cannot be empty");
-        }
-
-        if (!/^[0-9a-fA-F]+$/.test(packet)) {
-          throw new Error("Invalid hex string format");
-        }
-
-        buffer = Buffer.from(packet, "hex");
-      } else if (Buffer.isBuffer(packet)) {
-        buffer = packet;
-      } else {
-        throw new Error("Packet must be a Buffer or hex string");
-      }
+      let buffer = this.getBuffer(packet);
 
       // Validate minimum packet size
       if (buffer.length < Header.headerLength) {
@@ -266,4 +269,71 @@ export class Message {
   public getPayload(type: payloadType): Payload | undefined {
     return this.getPayloads(type)?.[0];
   }
+
+  /**
+   * Verifies the integrity checksum data of the given packet using the provided verifyFunction. Should be called on
+   * the original input packet, as passed to the parse() function, whenever you detect that the SK payload is present.
+   * The SK payload is always the last one in the message, such that the Integrity Checksum Data is at the end of the
+   * packet.
+   *
+   * @param packet
+   * @param integrityChecksumDataLength
+   * @param verifyFunction
+   * @returns
+   */
+  public static verifyIntegrityChecksumData(
+    packet: Buffer | string,
+    integrityChecksumDataLength: number,
+    verifyFunction: (dataToVerify: Buffer, receivedIntegrityChecksumData: Buffer) => boolean): boolean {
+
+    let buffer = this.getBuffer(packet);
+
+
+    if (Header.headerLength + integrityChecksumDataLength > buffer.length) {
+      throw new Error(
+        `Packet too short for integrity checksum data. Expected at least ${Header.headerLength + integrityChecksumDataLength} bytes, got ${buffer.length}`
+      );
+    }
+
+    const dataToVerify = buffer.subarray(0, buffer.length - integrityChecksumDataLength);
+    const receivedIntegrityChecksumData = buffer.subarray(buffer.length - integrityChecksumDataLength);
+
+    return verifyFunction(dataToVerify, receivedIntegrityChecksumData);
+  }
+
+  /**
+   * Updated the integrity checksum data of the given packet using the provided computeFunction. Should be called on the
+   * entire serialized packet, when an SK was included (and it was the last payload, hence the Integrity Checksum Data
+   * is supposed to be in the last bytes of the packet).
+   *
+   * @param packet
+   * @param integrityChecksumDataLength
+   * @param computeFunction
+   * @returns
+   */
+  public static updateIntegrityChecksumData(
+    packet: Buffer,
+    integrityChecksumDataLength: number,
+    computeFunction: (dataToCompute: Buffer) => Buffer): Buffer {
+
+    if (Header.headerLength + integrityChecksumDataLength > packet.length) {
+      throw new Error(
+        `Packet too short for integrity checksum data. Expected at least ${Header.headerLength + integrityChecksumDataLength} bytes, got ${packet.length}`
+      );
+    }
+
+    const dataToCompute = packet.subarray(0, packet.length - integrityChecksumDataLength);
+    const integrityChecksumData = computeFunction(dataToCompute);
+    if (integrityChecksumData.length !== integrityChecksumDataLength) {
+      throw new Error(
+        `Computed integrity checksum data length mismatch. Expected ${integrityChecksumDataLength} bytes, got ${integrityChecksumData.length}`
+      );
+    }
+
+    // Create a new buffer to avoid mutating the original packet
+    const updatedPacket = Buffer.from(packet);
+    integrityChecksumData.copy(updatedPacket, updatedPacket.length - integrityChecksumDataLength);
+    return updatedPacket;
+  }
+
 }
