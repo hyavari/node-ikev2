@@ -1909,11 +1909,15 @@ export class PayloadSK extends Payload {
    * This should be called after checking the Integrity Checksum Data (except for AEAD algorithms, which are
    * self-checking).
    *
+   * @param aad Additional Authenticated Data to include in the Integrity Checksum Data calculation - include here
+   * the entire IKE header and the SK payload header (first 4 bytes of the SK payload), so everything before the IV
+   * inside the SK payload. This is needed for AEAD algorithms, which include integrity protection in the encryption
+   * process (they output inClearData is shorter than the encryptedData).
    * @param decryptFunction Function that takes a Buffer and returns a decrypted Buffer
    * @returns {Payload[]} Array of decrypted Payloads
    * @public
    */
-  public decrypt(decryptFunction: (data: Buffer) => Buffer): Payload[] {
+  public decrypt(aad: Buffer | undefined, decryptFunction: (data: Buffer, aad: Buffer | undefined) => Buffer): Payload[] {
     if (this.encryptedData.length === 0) {
       throw new Error("No encrypted data to decrypt - must contain at least the IV and the Integrity Checksum Data");
     }
@@ -1927,8 +1931,8 @@ export class PayloadSK extends Payload {
     }
 
     // Decrypt data
-    const decryptedData = decryptFunction(this.encryptedData);
-    if (decryptedData.length === 0) {
+    const inClearData = decryptFunction(this.encryptedData, aad);
+    if (inClearData.length === 0) {
       return [];
     }
 
@@ -1938,19 +1942,19 @@ export class PayloadSK extends Payload {
     }
 
     while (
-      offset < decryptedData.length &&
+      offset < inClearData.length &&
       nextPayloadClass &&
       nextPayload !== payloadType.NONE
     ) {
       // Validate we have enough data for the next payload
-      if (offset + 4 > decryptedData.length) {
+      if (offset + 4 > inClearData.length) {
         throw new Error(
           `Insufficient data for payload header at offset ${offset}`
         );
       }
 
       const payload = nextPayloadClass.parse(
-        decryptedData.subarray(offset, decryptedData.length)
+        inClearData.subarray(offset, inClearData.length)
       );
 
       payloads.push(payload);
@@ -1959,9 +1963,9 @@ export class PayloadSK extends Payload {
       nextPayloadClass = payloadTypeMapping[nextPayload];
 
       // Validate payload length
-      if (offset > decryptedData.length) {
+      if (offset > inClearData.length) {
         throw new Error(
-          `Payload length exceeds packet size. Offset: ${offset}, Packet size: ${decryptedData.length}`
+          `Payload length exceeds packet size. Offset: ${offset}, Packet size: ${inClearData.length}`
         );
       }
     }
@@ -1981,13 +1985,19 @@ export class PayloadSK extends Payload {
    * The Integrity Checksum Data bytes will have to be updated after the entire IKE message is serialized.
    *
    * @param payloads Array of Payloads to encrypt
+   * @param aad Additional Authenticated Data to include in the Integrity Checksum Data calculation - include here
+   * the entire IKE header and the SK payload header (first 4 bytes of the SK payload), so everything before the IV
+   * inside the SK payload. This is needed for AEAD algorithms, which include integrity protection in the encryption
+   * process (they would also produce more data than the plaintext payloads data).
    * @param encryptFunction Function that takes a Buffer and returns an encrypted Buffer
    * @public
    */
-  public encrypt(payloads: Payload[], encryptFunction: (data: Buffer) => Buffer): void {
+  public encrypt(payloads: Payload[], aad: Buffer | undefined,
+    encryptFunction: (data: Buffer, aad: Buffer | undefined) => Buffer): void {
+
     this.nextPayload = (payloads.length === 0) ? payloadType.NONE : payloads[0].type;
     const inClearData = Buffer.concat(payloads.map(p => p.serialize()));
-    this.encryptedData = encryptFunction(inClearData);
+    this.encryptedData = encryptFunction(inClearData, aad);
   }
 
 }
