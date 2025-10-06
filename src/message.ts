@@ -272,33 +272,32 @@ export class Message {
 
   /**
    * Verifies the integrity checksum data of the given packet using the provided verifyFunction. Should be called on
-   * the original input packet, as passed to the parse() function, whenever you detect that the SK payload is present.
+   * whenever you detect that the SK payload is present.
+   *
    * The SK payload is always the last one in the message, such that the Integrity Checksum Data is at the end of the
    * packet.
    *
-   * @param packet
-   * @param integrityChecksumDataLength
+   * Might want to verify that the SK payload is the last one in the message before calling this function. Else it will
+   * always fail.
+   *
+   * @param iv  the IV used for the encryption of the SK payload, obtained from the decrypt function.
+   * @param packet the original input packet, as passed to the parse() function
    * @param verifyFunction
    * @returns
    */
   public static verifyIntegrityChecksumData(
+    iv: Buffer,
     packet: Buffer | string,
-    integrityChecksumDataLength: number,
-    verifyFunction: (dataToVerify: Buffer, receivedIntegrityChecksumData: Buffer) => boolean): boolean {
+    verifyFunction: (iv: Buffer, packet: Buffer) => boolean): boolean {
 
     let buffer = this.getBuffer(packet);
-
-
-    if (Header.headerLength + integrityChecksumDataLength > buffer.length) {
+    if (buffer.length < Header.headerLength) {
       throw new Error(
-        `Packet too short for integrity checksum data. Expected at least ${Header.headerLength + integrityChecksumDataLength} bytes, got ${buffer.length}`
+        `Packet too short for Integrity Checksum Data. Expected at least ${Header.headerLength} bytes, got ${buffer.length}`
       );
     }
 
-    const dataToVerify = buffer.subarray(0, buffer.length - integrityChecksumDataLength);
-    const receivedIntegrityChecksumData = buffer.subarray(buffer.length - integrityChecksumDataLength);
-
-    return verifyFunction(dataToVerify, receivedIntegrityChecksumData);
+    return verifyFunction(iv, buffer);
   }
 
   /**
@@ -306,34 +305,26 @@ export class Message {
    * entire serialized packet, when an SK was included (and it was the last payload, hence the Integrity Checksum Data
    * is supposed to be in the last bytes of the packet).
    *
+   * Please verify that the SK payload is the last one in the message before calling this function.
+   *
    * @param packet
    * @param integrityChecksumDataLength
-   * @param computeFunction
+   * @param signFunction
    * @returns
    */
   public static updateIntegrityChecksumData(
+    iv: Buffer,
     packet: Buffer,
-    integrityChecksumDataLength: number,
-    computeFunction: (dataToCompute: Buffer) => Buffer): Buffer {
+    signFunction: (iv: Buffer, packet: Buffer) => Buffer): Buffer {
 
-    if (Header.headerLength + integrityChecksumDataLength > packet.length) {
+
+    if (packet.length < Header.headerLength) {
       throw new Error(
-        `Packet too short for integrity checksum data. Expected at least ${Header.headerLength + integrityChecksumDataLength} bytes, got ${packet.length}`
+        `Packet too short for Integrity Checksum Data. Expected at least ${Header.headerLength} bytes, got ${packet.length}`
       );
     }
 
-    const dataToCompute = packet.subarray(0, packet.length - integrityChecksumDataLength);
-    const integrityChecksumData = computeFunction(dataToCompute);
-    if (integrityChecksumData.length !== integrityChecksumDataLength) {
-      throw new Error(
-        `Computed integrity checksum data length mismatch. Expected ${integrityChecksumDataLength} bytes, got ${integrityChecksumData.length}`
-      );
-    }
-
-    // Create a new buffer to avoid mutating the original packet
-    const updatedPacket = Buffer.from(packet);
-    integrityChecksumData.copy(updatedPacket, updatedPacket.length - integrityChecksumDataLength);
-    return updatedPacket;
+    return signFunction(iv, packet);
   }
 
 }

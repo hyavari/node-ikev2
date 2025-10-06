@@ -1917,7 +1917,14 @@ export class PayloadSK extends Payload {
    * @returns {Payload[]} Array of decrypted Payloads
    * @public
    */
-  public decrypt(aad: Buffer | undefined, decryptFunction: (data: Buffer, aad: Buffer | undefined) => Buffer): Payload[] {
+  public decrypt(
+    decryptFunction: (data: Buffer, aad?: Buffer) => { inClearData: Buffer, iv: Buffer },
+    aad?: Buffer): {
+      firstPayload: payloadType,
+      inClearPayloads: Payload[],
+      iv: Buffer
+    } {
+
     if (this.encryptedData.length === 0) {
       throw new Error("No encrypted data to decrypt - must contain at least the IV and the Integrity Checksum Data");
     }
@@ -1927,13 +1934,21 @@ export class PayloadSK extends Payload {
     const payloads: Payload[] = [];
 
     if (nextPayload === payloadType.NONE) {
-      return [];
+      return {
+        firstPayload: payloadType.NONE,
+        inClearPayloads: [],
+        iv: Buffer.alloc(0)
+      }
     }
 
     // Decrypt data
-    const inClearData = decryptFunction(this.encryptedData, aad);
+    const { inClearData, iv } = decryptFunction(this.encryptedData, aad);
     if (inClearData.length === 0) {
-      return [];
+      return {
+        firstPayload: payloadType.NONE,
+        inClearPayloads: [],
+        iv: iv
+      }
     }
 
     let nextPayloadClass = payloadTypeMapping[nextPayload];
@@ -1970,7 +1985,11 @@ export class PayloadSK extends Payload {
       }
     }
 
-    return payloads;
+    return {
+      firstPayload: this.nextPayload, /* the original payload type */
+      inClearPayloads: payloads,
+      iv: iv
+    };
   }
 
   /**
@@ -1982,22 +2001,29 @@ export class PayloadSK extends Payload {
    *
    * The encryptFunction should include pre-pending the IV, appending Padding and space for the Integrity Checksum Data.
    *
-   * The Integrity Checksum Data bytes will have to be updated after the entire IKE message is serialized.
+   * The Integrity Checksum Data bytes will have to be updated after the entire IKE message is serialized. The IV is
+   * needed then, so it is returned by this function.
    *
-   * @param payloads Array of Payloads to encrypt
+   * @param inClearPayloads Array of Payloads to encrypt
    * @param aad Additional Authenticated Data to include in the Integrity Checksum Data calculation - include here
    * the entire IKE header and the SK payload header (first 4 bytes of the SK payload), so everything before the IV
    * inside the SK payload. This is needed for AEAD algorithms, which include integrity protection in the encryption
    * process (they would also produce more data than the plaintext payloads data).
    * @param encryptFunction Function that takes a Buffer and returns an encrypted Buffer
-   * @public
+   * @returns The IV used for encryption, to be used in the message.updateIntegrityChecksumData function
    */
-  public encrypt(payloads: Payload[], aad: Buffer | undefined,
-    encryptFunction: (data: Buffer, aad: Buffer | undefined) => Buffer): void {
+  public encrypt(
+    inClearPayloads: Payload[],
+    encryptFunction: (data: Buffer, aad?: Buffer) => { skPayloadData: Buffer, iv: Buffer },
+    aad?: Buffer): {
+      iv: Buffer
+    } {
 
-    this.nextPayload = (payloads.length === 0) ? payloadType.NONE : payloads[0].type;
-    const inClearData = Buffer.concat(payloads.map(p => p.serialize()));
-    this.encryptedData = encryptFunction(inClearData, aad);
+    this.nextPayload = (inClearPayloads.length === 0) ? payloadType.NONE : inClearPayloads[0].type;
+    const inClearData = Buffer.concat(inClearPayloads.map(p => p.serialize()));
+    const { skPayloadData, iv } = encryptFunction(inClearData, aad);
+    this.encryptedData = skPayloadData;
+    return { iv: iv };
   }
 
 }
