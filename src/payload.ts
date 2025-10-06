@@ -1902,14 +1902,130 @@ export class PayloadSK extends Payload {
   }
 
   /**
-   * Decrypts the encrypted data in the SK payload
+   * Decrypts the encrypted data in the SK payload.
+   *
+   * The decryptFunction should handle removing the IV, Padding and Integrity Checksum Data.
+   *
+   * This should be called after checking the Integrity Checksum Data (except for AEAD algorithms, which are
+   * self-checking).
+   *
+   * @param aad Additional Authenticated Data to include in the Integrity Checksum Data calculation - include here
+   * the entire IKE header and the SK payload header (first 4 bytes of the SK payload), so everything before the IV
+   * inside the SK payload. This is needed for AEAD algorithms, which include integrity protection in the encryption
+   * process (they output inClearData is shorter than the encryptedData).
+   * @param decryptFunction Function that takes a Buffer and returns a decrypted Buffer
+   * @returns {Payload[]} Array of decrypted Payloads
    * @public
-   * @returns {Buffer} Decrypted data
    */
-  public decrypt(): Buffer {
-    // Implement decryption logic here
-    return this.encryptedData;
+  public decrypt(
+    decryptFunction: (data: Buffer, aad?: Buffer) => { inClearData: Buffer, iv: Buffer },
+    aad?: Buffer): {
+      firstPayload: payloadType,
+      inClearPayloads: Payload[],
+      iv: Buffer
+    } {
+
+    if (this.encryptedData.length === 0) {
+      throw new Error("No encrypted data to decrypt - must contain at least the IV and the Integrity Checksum Data");
+    }
+
+    let nextPayload = this.nextPayload;
+    let offset = 0;
+    const payloads: Payload[] = [];
+
+    if (nextPayload === payloadType.NONE) {
+      return {
+        firstPayload: payloadType.NONE,
+        inClearPayloads: [],
+        iv: Buffer.alloc(0)
+      }
+    }
+
+    // Decrypt data
+    const { inClearData, iv } = decryptFunction(this.encryptedData, aad);
+    if (inClearData.length === 0) {
+      return {
+        firstPayload: payloadType.NONE,
+        inClearPayloads: [],
+        iv: iv
+      }
+    }
+
+    let nextPayloadClass = payloadTypeMapping[nextPayload];
+    if (!nextPayloadClass) {
+      throw new Error(`Unknown payload type: ${nextPayload}`);
+    }
+
+    while (
+      offset < inClearData.length &&
+      nextPayloadClass &&
+      nextPayload !== payloadType.NONE
+    ) {
+      // Validate we have enough data for the next payload
+      if (offset + 4 > inClearData.length) {
+        throw new Error(
+          `Insufficient data for payload header at offset ${offset}`
+        );
+      }
+
+      const payload = nextPayloadClass.parse(
+        inClearData.subarray(offset, inClearData.length)
+      );
+
+      payloads.push(payload);
+      offset += payload.length;
+      nextPayload = payload.nextPayload;
+      nextPayloadClass = payloadTypeMapping[nextPayload];
+
+      // Validate payload length
+      if (offset > inClearData.length) {
+        throw new Error(
+          `Payload length exceeds packet size. Offset: ${offset}, Packet size: ${inClearData.length}`
+        );
+      }
+    }
+
+    return {
+      firstPayload: this.nextPayload, /* the original payload type */
+      inClearPayloads: payloads,
+      iv: iv
+    };
   }
+
+  /**
+   * Encrypts data and sets it as the encrypted data in the SK payload. Should be called before serializing the IKE
+   * message, when the SK payload is included and is the last one in the message.
+   *
+   * Also sets the nextPayload in the SK payload as the type of the first payload inside the encrypted data. This is
+   * an exception to the rule, but the SK payload is always the last one in the message, to compensate.
+   *
+   * The encryptFunction should include pre-pending the IV, appending Padding and space for the Integrity Checksum Data.
+   *
+   * The Integrity Checksum Data bytes will have to be updated after the entire IKE message is serialized. The IV is
+   * needed then, so it is returned by this function.
+   *
+   * @param inClearPayloads Array of Payloads to encrypt
+   * @param aad Additional Authenticated Data to include in the Integrity Checksum Data calculation - include here
+   * the entire IKE header and the SK payload header (first 4 bytes of the SK payload), so everything before the IV
+   * inside the SK payload. This is needed for AEAD algorithms, which include integrity protection in the encryption
+   * process (they would also produce more data than the plaintext payloads data).
+   * @param encryptFunction Function that takes a Buffer and returns an encrypted Buffer
+   * @returns The IV used for encryption, to be used in the message.updateIntegrityChecksumData function
+   */
+  public encrypt(
+    inClearPayloads: Payload[],
+    encryptFunction: (data: Buffer, aad?: Buffer) => { skPayloadData: Buffer, iv: Buffer },
+    aad?: Buffer): {
+      iv: Buffer
+    } {
+
+    this.nextPayload = (inClearPayloads.length === 0) ? payloadType.NONE : inClearPayloads[0].type;
+    const inClearData = Buffer.concat(inClearPayloads.map(p => p.serialize()));
+    const { skPayloadData, iv } = encryptFunction(inClearData, aad);
+    this.encryptedData = skPayloadData;
+    return { iv: iv };
+  }
+
 }
 
 /**

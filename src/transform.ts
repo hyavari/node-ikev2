@@ -80,7 +80,7 @@ export enum encrId {
   // RESERVED = 0,
   ENCR_DES_IV64 = 1, // Deprecated by [RFC9395]
   ENCR_DES = 2, // [RFC2405] - Deprecated by [RFC8247]
-  ENCR_DES3 = 3, // [RFC2451]
+  ENCR_3DES = 3, // [RFC2451]
   ENCR_RC5 = 4, // [RFC2451] - Deprecated by [RFC9395]
   ENCR_IDEA = 5, // [RFC2451] - Deprecated by [RFC9395]
   ENCR_CAST = 6, // [RFC2451] - Deprecated by [RFC9395]
@@ -107,7 +107,7 @@ export enum encrId {
   ENCR_CAMELLIA_CCM_16 = 27, // [RFC5529] RFC[8247]
   ENCR_CHACHA20_POLY1305 = 28, // [RFC7634] [RFC8439]
   ENCR_AES_CCM_8_IIV = 29, // [RFC8750] - Not allowed for IKEv2
-  ENCR_AES_CCM_16_IIV = 30, // [RFC8750] - Not allowed for IKEv2
+  ENCR_AES_GCM_16_IIV = 30, // [RFC8750] - Not allowed for IKEv2
   ENCR_CHACHA20_POLY1305_IIV = 31, // [RFC8750] - Not allowed for IKEv2
   ENCR_KUZNYECHIK_MGM_KTREE = 32, // [RFC9227]
   ENCR_MAGMA_MGM_KTREE = 33, // [RFC9227]
@@ -421,7 +421,7 @@ export class Transform {
     return attributes;
   }
 
-  public get AttributeKeyLength(): number | undefined {
+  public get attributeKeyLength(): number | undefined {
     let keyLengthAttribute = this.attributes?.find(attr => attr.type === attributeType.KeyLength);
     if (keyLengthAttribute && keyLengthAttribute.value && keyLengthAttribute.value.length == 2) {
       return keyLengthAttribute.value.readUInt16BE(0);
@@ -429,7 +429,7 @@ export class Transform {
     return undefined;
   }
 
-  public set AttributeKeyLength(keyLength: number) {
+  public set attributeKeyLength(keyLength: number) {
     let keyLengthBuffer = Buffer.alloc(2);
     keyLengthBuffer.writeUInt16BE(keyLength, 0);
     let keyLengthAttribute = this.attributes?.find(attr => attr.type === attributeType.KeyLength);

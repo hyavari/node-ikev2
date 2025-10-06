@@ -41,6 +41,24 @@ export class Message {
     this.payloads = payloads;
   }
 
+  private static getBuffer(packet: Buffer | string): Buffer {
+    if (typeof packet === "string") {
+      if (packet.length === 0) {
+        throw new Error("Hex string cannot be empty");
+      }
+
+      if (!/^[0-9a-fA-F]+$/.test(packet)) {
+        throw new Error("Invalid hex string format");
+      }
+
+      return Buffer.from(packet, "hex");
+    } else if (Buffer.isBuffer(packet)) {
+      return packet;
+    } else {
+      throw new Error("Packet must be a Buffer or hex string");
+    }
+  }
+
   /**
    * Parses IKEv2 message
    * @param buffer - Buffer containing the message
@@ -57,22 +75,7 @@ export class Message {
         throw new Error("Packet data is required");
       }
 
-      let buffer: Buffer;
-      if (typeof packet === "string") {
-        if (packet.length === 0) {
-          throw new Error("Hex string cannot be empty");
-        }
-
-        if (!/^[0-9a-fA-F]+$/.test(packet)) {
-          throw new Error("Invalid hex string format");
-        }
-
-        buffer = Buffer.from(packet, "hex");
-      } else if (Buffer.isBuffer(packet)) {
-        buffer = packet;
-      } else {
-        throw new Error("Packet must be a Buffer or hex string");
-      }
+      let buffer = this.getBuffer(packet);
 
       // Validate minimum packet size
       if (buffer.length < Header.headerLength) {
@@ -266,4 +269,62 @@ export class Message {
   public getPayload(type: payloadType): Payload | undefined {
     return this.getPayloads(type)?.[0];
   }
+
+  /**
+   * Verifies the integrity checksum data of the given packet using the provided verifyFunction. Should be called on
+   * whenever you detect that the SK payload is present.
+   *
+   * The SK payload is always the last one in the message, such that the Integrity Checksum Data is at the end of the
+   * packet.
+   *
+   * Might want to verify that the SK payload is the last one in the message before calling this function. Else it will
+   * always fail.
+   *
+   * @param iv  the IV used for the encryption of the SK payload, obtained from the decrypt function.
+   * @param packet the original input packet, as passed to the parse() function
+   * @param verifyFunction
+   * @returns
+   */
+  public static verifyIntegrityChecksumData(
+    iv: Buffer,
+    packet: Buffer | string,
+    verifyFunction: (iv: Buffer, packet: Buffer) => boolean): boolean {
+
+    let buffer = this.getBuffer(packet);
+    if (buffer.length < Header.headerLength) {
+      throw new Error(
+        `Packet too short for Integrity Checksum Data. Expected at least ${Header.headerLength} bytes, got ${buffer.length}`
+      );
+    }
+
+    return verifyFunction(iv, buffer);
+  }
+
+  /**
+   * Updated the integrity checksum data of the given packet using the provided computeFunction. Should be called on the
+   * entire serialized packet, when an SK was included (and it was the last payload, hence the Integrity Checksum Data
+   * is supposed to be in the last bytes of the packet).
+   *
+   * Please verify that the SK payload is the last one in the message before calling this function.
+   *
+   * @param packet
+   * @param integrityChecksumDataLength
+   * @param signFunction
+   * @returns
+   */
+  public static updateIntegrityChecksumData(
+    iv: Buffer,
+    packet: Buffer,
+    signFunction: (iv: Buffer, packet: Buffer) => Buffer): Buffer {
+
+
+    if (packet.length < Header.headerLength) {
+      throw new Error(
+        `Packet too short for Integrity Checksum Data. Expected at least ${Header.headerLength} bytes, got ${packet.length}`
+      );
+    }
+
+    return signFunction(iv, packet);
+  }
+
 }
