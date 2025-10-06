@@ -421,7 +421,7 @@ export class Transform {
     return attributes;
   }
 
-  public get AttributeKeyLength(): number | undefined {
+  public get attributeKeyLength(): number | undefined {
     let keyLengthAttribute = this.attributes?.find(attr => attr.type === attributeType.KeyLength);
     if (keyLengthAttribute && keyLengthAttribute.value && keyLengthAttribute.value.length == 2) {
       return keyLengthAttribute.value.readUInt16BE(0);
@@ -429,7 +429,7 @@ export class Transform {
     return undefined;
   }
 
-  public set AttributeKeyLength(keyLength: number) {
+  public set attributeKeyLength(keyLength: number) {
     let keyLengthBuffer = Buffer.alloc(2);
     keyLengthBuffer.writeUInt16BE(keyLength, 0);
     let keyLengthAttribute = this.attributes?.find(attr => attr.type === attributeType.KeyLength);
