@@ -295,7 +295,7 @@ export class Transform {
     public type: transformType,
     public id: number,
     public attributes: Attribute[]
-  ) { }
+  ) {}
 
   /**
    * Parses a transform from a buffer
@@ -422,8 +422,14 @@ export class Transform {
   }
 
   public get attributeKeyLength(): number | undefined {
-    let keyLengthAttribute = this.attributes?.find(attr => attr.type === attributeType.KeyLength);
-    if (keyLengthAttribute && keyLengthAttribute.value && keyLengthAttribute.value.length == 2) {
+    let keyLengthAttribute = this.attributes?.find(
+      (attr) => attr.type === attributeType.KeyLength
+    );
+    if (
+      keyLengthAttribute &&
+      keyLengthAttribute.value &&
+      keyLengthAttribute.value.length == 2
+    ) {
       return keyLengthAttribute.value.readUInt16BE(0);
     }
     return undefined;
@@ -432,12 +438,17 @@ export class Transform {
   public set attributeKeyLength(keyLength: number) {
     let keyLengthBuffer = Buffer.alloc(2);
     keyLengthBuffer.writeUInt16BE(keyLength, 0);
-    let keyLengthAttribute = this.attributes?.find(attr => attr.type === attributeType.KeyLength);
+    let keyLengthAttribute = this.attributes?.find(
+      (attr) => attr.type === attributeType.KeyLength
+    );
+
     if (keyLengthAttribute) {
       keyLengthAttribute.value = keyLengthBuffer;
       keyLengthAttribute.length = 0;
     } else {
-      this.attributes.push(new Attribute(1, attributeType.KeyLength, keyLengthBuffer, 2));
+      this.attributes.push(
+        new Attribute(1, attributeType.KeyLength, keyLengthBuffer, 2)
+      );
     }
   }
 

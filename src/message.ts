@@ -288,9 +288,10 @@ export class Message {
   public static verifyIntegrityChecksumData(
     iv: Buffer,
     packet: Buffer | string,
-    verifyFunction: (iv: Buffer, packet: Buffer) => boolean): boolean {
-
+    verifyFunction: (iv: Buffer, packet: Buffer) => boolean
+  ): boolean {
     let buffer = this.getBuffer(packet);
+
     if (buffer.length < Header.headerLength) {
       throw new Error(
         `Packet too short for Integrity Checksum Data. Expected at least ${Header.headerLength} bytes, got ${buffer.length}`
@@ -315,9 +316,8 @@ export class Message {
   public static updateIntegrityChecksumData(
     iv: Buffer,
     packet: Buffer,
-    signFunction: (iv: Buffer, packet: Buffer) => Buffer): Buffer {
-
-
+    signFunction: (iv: Buffer, packet: Buffer) => Buffer
+  ): Buffer {
     if (packet.length < Header.headerLength) {
       throw new Error(
         `Packet too short for Integrity Checksum Data. Expected at least ${Header.headerLength} bytes, got ${packet.length}`
@@ -326,5 +326,4 @@ export class Message {
 
     return signFunction(iv, packet);
   }
-
 }

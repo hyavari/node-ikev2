@@ -75,7 +75,7 @@ export class Payload {
     public nextPayload: payloadType,
     public critical: boolean = false, // default to false for all defined payloads in IKEv2
     public length: number
-  ) { }
+  ) {}
 
   /**
    * Parses a payload generic header from a buffer
@@ -1918,15 +1918,20 @@ export class PayloadSK extends Payload {
    * @public
    */
   public decrypt(
-    decryptFunction: (data: Buffer, aad?: Buffer) => { inClearData: Buffer, iv: Buffer },
-    aad?: Buffer): {
-      firstPayload: payloadType,
-      inClearPayloads: Payload[],
-      iv: Buffer
-    } {
-
+    decryptFunction: (
+      data: Buffer,
+      aad?: Buffer
+    ) => { inClearData: Buffer; iv: Buffer },
+    aad?: Buffer
+  ): {
+    firstPayload: payloadType;
+    inClearPayloads: Payload[];
+    iv: Buffer;
+  } {
     if (this.encryptedData.length === 0) {
-      throw new Error("No encrypted data to decrypt - must contain at least the IV and the Integrity Checksum Data");
+      throw new Error(
+        "No encrypted data to decrypt - must contain at least the IV and the Integrity Checksum Data"
+      );
     }
 
     let nextPayload = this.nextPayload;
@@ -1937,21 +1942,23 @@ export class PayloadSK extends Payload {
       return {
         firstPayload: payloadType.NONE,
         inClearPayloads: [],
-        iv: Buffer.alloc(0)
-      }
+        iv: Buffer.alloc(0),
+      };
     }
 
     // Decrypt data
     const { inClearData, iv } = decryptFunction(this.encryptedData, aad);
+
     if (inClearData.length === 0) {
       return {
         firstPayload: payloadType.NONE,
         inClearPayloads: [],
-        iv: iv
-      }
+        iv: iv,
+      };
     }
 
     let nextPayloadClass = payloadTypeMapping[nextPayload];
+
     if (!nextPayloadClass) {
       throw new Error(`Unknown payload type: ${nextPayload}`);
     }
@@ -1986,9 +1993,9 @@ export class PayloadSK extends Payload {
     }
 
     return {
-      firstPayload: this.nextPayload, /* the original payload type */
+      firstPayload: this.nextPayload /* the original payload type */,
       inClearPayloads: payloads,
-      iv: iv
+      iv: iv,
     };
   }
 
@@ -2014,18 +2021,23 @@ export class PayloadSK extends Payload {
    */
   public encrypt(
     inClearPayloads: Payload[],
-    encryptFunction: (data: Buffer, aad?: Buffer) => { skPayloadData: Buffer, iv: Buffer },
-    aad?: Buffer): {
-      iv: Buffer
-    } {
-
-    this.nextPayload = (inClearPayloads.length === 0) ? payloadType.NONE : inClearPayloads[0].type;
-    const inClearData = Buffer.concat(inClearPayloads.map(p => p.serialize()));
+    encryptFunction: (
+      data: Buffer,
+      aad?: Buffer
+    ) => { skPayloadData: Buffer; iv: Buffer },
+    aad?: Buffer
+  ): {
+    iv: Buffer;
+  } {
+    this.nextPayload =
+      inClearPayloads.length === 0 ? payloadType.NONE : inClearPayloads[0].type;
+    const inClearData = Buffer.concat(
+      inClearPayloads.map((p) => p.serialize())
+    );
     const { skPayloadData, iv } = encryptFunction(inClearData, aad);
     this.encryptedData = skPayloadData;
     return { iv: iv };
   }
-
 }
 
 /**
@@ -2234,7 +2246,7 @@ export class PayloadEAP extends Payload {
  * Base interface for all payload classes
  */
 interface PayloadClass {
-  new(...args: any[]): Payload;
+  new (...args: any[]): Payload;
   parse(buffer: Buffer): Payload;
   serializeJSON(json: Record<string, any>): Buffer;
 }

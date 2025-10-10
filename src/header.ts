@@ -70,6 +70,7 @@ export class Header {
     if (!Buffer.isBuffer(initiatorSPI) || initiatorSPI.length !== 8) {
       throw new Error("Initiator SPI must be an 8-byte Buffer");
     }
+
     if (!Buffer.isBuffer(responderSPI) || responderSPI.length !== 8) {
       throw new Error("Responder SPI must be an 8-byte Buffer");
     }
@@ -80,6 +81,7 @@ export class Header {
         `Major version must be between 0 and 15, got ${majorVersion}`
       );
     }
+
     if (minorVersion < 0 || minorVersion > 15) {
       throw new Error(
         `Minor version must be between 0 and 15, got ${minorVersion}`
@@ -137,18 +139,21 @@ export class Header {
       if (offset + 8 > buffer.length) {
         throw new Error("Buffer too short for initiator SPI");
       }
+
       const initiatorSPI = buffer.subarray(offset, offset + 8);
       offset += 8;
 
       if (offset + 8 > buffer.length) {
         throw new Error("Buffer too short for responder SPI");
       }
+
       const responderSPI = buffer.subarray(offset, offset + 8);
       offset += 8;
 
       if (offset + 1 > buffer.length) {
         throw new Error("Buffer too short for next payload");
       }
+
       const nextPayloadByte = buffer.readUInt8(offset);
       const nextPayload = nextPayloadByte as payloadType;
       offset += 1;
@@ -156,6 +161,7 @@ export class Header {
       if (offset + 1 > buffer.length) {
         throw new Error("Buffer too short for version");
       }
+
       const majorVersion = buffer.readUInt8(offset) >> 4;
       const minorVersion = buffer.readUInt8(offset) & 0x0f;
       offset += 1;
@@ -163,6 +169,7 @@ export class Header {
       if (offset + 1 > buffer.length) {
         throw new Error("Buffer too short for exchange type");
       }
+
       const exchangeTypeByte = buffer.readUInt8(offset);
       const exchangeTypePayload = exchangeTypeByte as exchangeType;
       offset += 1;
@@ -170,6 +177,7 @@ export class Header {
       if (offset + 1 > buffer.length) {
         throw new Error("Buffer too short for flags");
       }
+
       const flags = buffer.readUInt8(offset);
       const isInitiator = Boolean(flags & 0x08);
       const canUseHigherVersion = Boolean(flags & 0x10);
@@ -179,12 +187,14 @@ export class Header {
       if (offset + 4 > buffer.length) {
         throw new Error("Buffer too short for message ID");
       }
+
       const messageID = buffer.readUInt32BE(offset);
       offset += 4;
 
       if (offset + 4 > buffer.length) {
         throw new Error("Buffer too short for length");
       }
+
       const length = buffer.readUInt32BE(offset);
       offset += 4;
 
@@ -270,6 +280,7 @@ export class Header {
       if (error instanceof Error) {
         throw new Error(`Failed to serialize header: ${error.message}`);
       }
+
       throw new Error("Failed to serialize header: Unknown error");
     }
   }
