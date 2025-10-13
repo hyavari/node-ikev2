@@ -75,7 +75,7 @@ export class Payload {
     public nextPayload: payloadType,
     public critical: boolean = false, // default to false for all defined payloads in IKEv2
     public length: number
-  ) {}
+  ) { }
 
   /**
    * Parses a payload generic header from a buffer
@@ -1387,6 +1387,9 @@ export class PayloadNOTIFY extends Payload {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
+    if (this.length == 0) {
+      this.length = 8 + this.spi.length + this.notifyData.length;
+    }
     const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
     buffer.writeUInt8(this.protocolId, 4);
@@ -2246,7 +2249,7 @@ export class PayloadEAP extends Payload {
  * Base interface for all payload classes
  */
 interface PayloadClass {
-  new (...args: any[]): Payload;
+  new(...args: any[]): Payload;
   parse(buffer: Buffer): Payload;
   serializeJSON(json: Record<string, any>): Buffer;
 }

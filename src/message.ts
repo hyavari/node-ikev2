@@ -224,8 +224,9 @@ export class Message {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
-    const headerBuffer = this.header.serialize();
     const payloadsBuffers = this.payloads.map((payload) => payload.serialize());
+    this.header.length = Header.headerLength + payloadsBuffers.reduce((sum, buf) => sum + buf.length, 0);
+    const headerBuffer = this.header.serialize();
     return Buffer.concat([headerBuffer, ...payloadsBuffers]);
   }
 
