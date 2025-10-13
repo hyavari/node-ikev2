@@ -224,22 +224,22 @@ export enum integId {
 */
 export enum dhId {
   NONE = 0,
-  DH_768_bit = 1, // Deprecated by [RFC8247]
-  DH_1024_bit = 2,
+  DH_768_bit_MODP = 1, // Deprecated by [RFC8247]
+  DH_1024_bit_MODP = 2,
   // 3-4 Reserved
-  DH_1536_bit = 5, // [RFC3526]
+  DH_1536_bit_MODP = 5, // [RFC3526]
   // 6-13 Unassigned
-  DH_2048_bit = 14, // [RFC3526]
-  DH_3072_bit = 15, // [RFC3526]
-  DH_4096_bit = 16, // [RFC3526]
-  DH_6144_bit = 17, // [RFC3526]
-  DH_8192_bit = 18, // [RFC3526]
+  DH_2048_bit_MODP = 14, // [RFC3526]
+  DH_3072_bit_MODP = 15, // [RFC3526]
+  DH_4096_bit_MODP = 16, // [RFC3526]
+  DH_6144_bit_MODP = 17, // [RFC3526]
+  DH_8192_bit_MODP = 18, // [RFC3526]
   DH_256_bit_random_ECP = 19, // [RFC5903]
   DH_384_bit_random_ECP = 20, // [RFC5903]
   DH_521_bit_random_ECP = 21, // [RFC5903]
-  DH_1024_bit_with_160_bit_Prime_Order = 22, // [RFC5114] Deprecated by [RFC8247]
-  DH_2048_bit_with_224_bit_Prime_Order = 23, // [RFC5114]
-  DH_2048_bit_with_256_bit_Prime_Order = 24, // [RFC5114]
+  DH_1024_bit_MODP_with_160_bit_Prime_Order = 22, // [RFC5114] Deprecated by [RFC8247]
+  DH_2048_bit_MODP_with_224_bit_Prime_Order = 23, // [RFC5114]
+  DH_2048_bit_MODP_with_256_bit_Prime_Order = 24, // [RFC5114]
   DH_192_bit_random_ECP = 25, // [RFC5114]
   DH_224_bit_random_ECP = 26, // [RFC5114]
   DH_brainpoolP224r1 = 27, // [RFC6954]
@@ -295,7 +295,7 @@ export class Transform {
     public type: transformType,
     public id: number,
     public attributes: Attribute[]
-  ) {}
+  ) { }
 
   /**
    * Parses a transform from a buffer
