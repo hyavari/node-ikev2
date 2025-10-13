@@ -239,15 +239,16 @@ export class Message {
 
     // Serialize the payloads first, since we need their lengths to compute the total message length
     const payloadsBuffers = this.payloads.map((payload) => payload.serialize());
+    const payloadsBuffer = Buffer.concat(payloadsBuffers);
 
     // Update header length
-    this.header.length = Header.headerLength + payloadsBuffers.reduce((sum, buf) => sum + buf.length, 0);
+    this.header.length = Header.headerLength + payloadsBuffer.length;
 
     // Serialize header
     const headerBuffer = this.header.serialize();
 
     // Concatenate header and payloads
-    return Buffer.concat([headerBuffer, ...payloadsBuffers]);
+    return Buffer.concat([headerBuffer, payloadsBuffer]);
   }
 
   /**
