@@ -199,6 +199,11 @@ export class Payload {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
+    // The length should be set by the child class before calling this method
+    if (this.length < 4) {
+      throw new Error(`Invalid payload length: ${this.length}`);
+    }
+
     const buffer = Buffer.alloc(4);
     buffer.writeUInt8(this.nextPayload, 0);
     buffer.writeUInt8(this.critical ? 0x80 : 0, 1);
@@ -363,19 +368,18 @@ export class PayloadSA extends Payload {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
+    // Encode deep first, to calculate the total length
     const proposalsBuffer = this.proposals.map((proposal) =>
       proposal.serialize()
     );
+    const proposals = Buffer.concat(proposalsBuffer);
+
+    // Fix the length
+    this.length = 4 + proposals.length;
+
     const buffer = Buffer.alloc(this.length);
-
     super.serialize().copy(buffer);
-
-    let offset = 4;
-
-    for (const proposalBuffer of proposalsBuffer) {
-      proposalBuffer.copy(buffer, offset);
-      offset += proposalBuffer.length;
-    }
+    proposals.copy(buffer, 4);
 
     return buffer;
   }
@@ -532,10 +536,13 @@ export class PayloadKE extends Payload {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
+    // Fix the length
+    this.length = 8 + this.keyData.length;
+
     const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
     buffer.writeUInt16BE(this.dhGroup, 4);
-    buffer.writeUInt16BE(0, 6); // Reserved
+    // No need to blank 2 reserved bytes, Buffer.alloc does that
     this.keyData.copy(buffer, 8);
     return buffer;
   }
@@ -707,13 +714,13 @@ export class PayloadID extends Payload {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
+    // Fix the length
+    this.length = 8 + this.idData.length;
+
     const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
     buffer.writeUInt8(this.idType, 4);
-    // Write 3-byte reserved field as zeros in big-endian order
-    buffer.writeUInt8(0, 5);
-    buffer.writeUInt8(0, 6);
-    buffer.writeUInt8(0, 7);
+    // No need to blank 3 reserved bytes, Buffer.alloc does that
     this.idData.copy(buffer, 8);
     return buffer;
   }
@@ -890,6 +897,9 @@ export class PayloadCERT extends Payload {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
+    // Fix the length
+    this.length = 5 + this.certData.length;
+
     const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
     buffer.writeUInt8(this.certEncoding, 4);
@@ -984,6 +994,9 @@ export class PayloadCERTREQ extends Payload {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
+    // Fix the length
+    this.length = 5 + this.certAuthority.length;
+
     const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
     buffer.writeUInt8(this.certEncoding, 4);
@@ -1082,13 +1095,13 @@ export class PayloadAUTH extends Payload {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
+    // Fix the length
+    this.length = 8 + this.authData.length;
+
     const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
     buffer.writeUInt8(this.authMethod, 4);
-    // Write 3-byte reserved field as zeros in big-endian order
-    buffer.writeUInt8(0, 5);
-    buffer.writeUInt8(0, 6);
-    buffer.writeUInt8(0, 7);
+    // No need to blank 3 reserved bytes, Buffer.alloc does that
     this.authData.copy(buffer, 8);
     return buffer;
   }
@@ -1176,6 +1189,9 @@ export class PayloadNONCE extends Payload {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
+    // Fix the length
+    this.length = 4 + this.nonceData.length;
+
     const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
     this.nonceData.copy(buffer, 4);
@@ -1387,9 +1403,9 @@ export class PayloadNOTIFY extends Payload {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
-    if (this.length == 0) {
-      this.length = 8 + this.spi.length + this.notifyData.length;
-    }
+    // Fix the length
+    this.length = 8 + this.spi.length + this.notifyData.length;
+
     const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
     buffer.writeUInt8(this.protocolId, 4);
@@ -1516,6 +1532,9 @@ export class PayloadDELETE extends Payload {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
+    // Fix the length
+    this.length = 8 + this.spiSize * this.numSpi;
+
     const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
     buffer.writeUInt8(this.protocolId, 4);
@@ -1523,7 +1542,6 @@ export class PayloadDELETE extends Payload {
     buffer.writeUInt16BE(this.numSpi, 6);
 
     let offset = 8;
-
     for (const spi of this.spis) {
       spi.copy(buffer, offset);
       offset += this.spiSize;
@@ -1617,6 +1635,9 @@ export class PayloadVENDOR extends Payload {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
+    // Fix the length
+    this.length = 4 + this.vendorId.length;
+
     const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
     this.vendorId.copy(buffer, 4);
@@ -1730,18 +1751,18 @@ export class PayloadTS extends Payload {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
-    const buffer = Buffer.alloc(this.length);
+    // Encode deep first to calculate length
+    const tsListBuffer = this.tsList.map((ts) => ts.serialize());
+    const tsBuffer = Buffer.concat(tsListBuffer);
 
+    // Fix the length
+    this.length = 5 + tsBuffer.length;
+
+    const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
     buffer.writeUInt8(this.numTs, 4);
-
-    const tsListBuffer = this.tsList.map((ts) => ts.serialize());
-    let offset = 8;
-
-    for (const tsBuffer of tsListBuffer) {
-      tsBuffer.copy(buffer, offset);
-      offset += tsBuffer.length;
-    }
+    // No need to blank 3 reserved bytes, Buffer.alloc does that
+    tsBuffer.copy(buffer, 8);
 
     return buffer;
   }
@@ -1877,6 +1898,9 @@ export class PayloadSK extends Payload {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
+    // Fix the length
+    this.length = 4 + this.encryptedData.length;
+
     const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
     this.encryptedData.copy(buffer, 4);
@@ -2122,13 +2146,14 @@ export class PayloadCP extends Payload {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
+    // Fix the length
+    this.length = 8 + this.cfgData.length;
+
+
     const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
     buffer.writeUInt8(this.cfgType, 4);
-    // Write 3-byte reserved field as zeros in big-endian order
-    buffer.writeUInt8(0, 5);
-    buffer.writeUInt8(0, 6);
-    buffer.writeUInt8(0, 7);
+    // No need to blank 3 reserved bytes, Buffer.alloc does that
     this.cfgData.copy(buffer, 8);
     return buffer;
   }
@@ -2217,9 +2242,15 @@ export class PayloadEAP extends Payload {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
+    // Encode deep first to calculate length
+    const tlvDataBuffer = this.tlvData.serialize();
+
+    // Fix the length
+    this.length = 4 + tlvDataBuffer.length;
+
     const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
-    this.tlvData.serialize().copy(buffer, 4);
+    tlvDataBuffer.copy(buffer, 4);
     return buffer;
   }
 
