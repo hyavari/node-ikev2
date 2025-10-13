@@ -456,32 +456,24 @@ export class Transform {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
-    // Calculate total length first
-    const attributesLength = this.attributes.reduce(
-      (acc, attr) => acc + attr.serialize().length,
-      0
-    );
-    const totalLength = 8 + attributesLength;
+    // Encode deep attributes first
+    const attributes = this.attributes.map((attr) => attr.serialize());
+    const attributesBuffer = Buffer.concat(attributes);
+
+    // Fix the length
+    this.length = 8 + attributesBuffer.length;
 
     // Allocate a buffer with the exact length
-    const buffer = Buffer.alloc(totalLength);
-
+    const buffer = Buffer.alloc(this.length);
     // Serialize fields into the buffer
     buffer.writeUInt8(this.lastSubstructure, 0); // First byte: lastSubstructure
     buffer.writeUInt8(0, 1);
-    buffer.writeUInt16BE(totalLength, 2); // Transform Length (2 bytes)
+    buffer.writeUInt16BE(this.length, 2); // Transform Length (2 bytes)
     buffer.writeUInt8(this.type, 4); // Transform Type (1 byte)
     buffer.writeUInt8(0, 5); // Reserved (1 byte)
     buffer.writeUInt16BE(this.id, 6); // Transform ID (2 bytes)
 
-    // Copy attributes directly into buffer instead of using Buffer.concat
-    let offset = 8;
-
-    for (const attribute of this.attributes) {
-      const attributeBuffer = attribute.serialize();
-      attributeBuffer.copy(buffer, offset);
-      offset += attributeBuffer.length;
-    }
+    attributesBuffer.copy(buffer, 8); // Copy attributes starting at byte 8
 
     return buffer;
   }

@@ -15,4 +15,11 @@ describe("Proposal Parsing and Serialization", () => {
         const serializedBuffer = Proposal.serializeJSON(proposal.toJSON());
         expect(serializedBuffer.toString("hex")).toBe(proposalHex_1);
     });
+
+    it("parses a particular Proposal buffer", () => {
+        const specificHex = "00000014010100010000000c0100000c800e0100";
+        const specificBuffer = Buffer.from(specificHex, "hex");
+        const proposal = Proposal.parse(specificBuffer);
+        expect(proposal).toBeDefined();
+    });
 });

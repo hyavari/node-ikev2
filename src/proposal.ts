@@ -88,7 +88,7 @@ export class Proposal {
         transforms
       );
     } catch (error) {
-      throw new Error("Failed to parse proposal");
+      throw new Error(`Failed to parse proposal from buffer ${buffer.toString("hex")}: ${error}`);
     }
   }
 
@@ -178,12 +178,17 @@ export class Proposal {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
-    const buffer = Buffer.alloc(
-      8 +
-      this.spiSize +
-      this.transforms.reduce((acc, transform) => acc + transform.length, 0)
-    );
+    // Encode deep transforms first
+    const transforms = this.transforms.map((transform) => transform.serialize());
+    const transformsBuffer = Buffer.concat(transforms);
 
+    // Fix the length
+    this.length = 8 + this.spiSize + transformsBuffer.length;
+
+    // Fix the numTransforms
+    this.numTransforms = this.transforms.length;
+
+    const buffer = Buffer.alloc(this.length);
     buffer.writeUInt8(this.lastSubstructure, 0);
     buffer.writeUInt8(0, 1);
     buffer.writeUInt16BE(this.length, 2);
@@ -196,13 +201,7 @@ export class Proposal {
       this.spi.copy(buffer, 8, 0, this.spiSize);
     }
 
-    let offset = 8 + this.spiSize;
-
-    for (const transform of this.transforms) {
-      const transformBuffer = transform.serialize();
-      transformBuffer.copy(buffer, offset);
-      offset += transformBuffer.length;
-    }
+    transformsBuffer.copy(buffer, 8 + this.spiSize);
 
     return buffer;
   }
