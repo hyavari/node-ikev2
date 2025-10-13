@@ -8,6 +8,11 @@ describe("Attribute Parsing and Serialization", () => {
     it("parses a hex buffer to an Attribute object", () => {
         const attribute = Attribute.parse(attributeBuffer);
         expect(attribute).toBeDefined();
+        expect(attribute.format).toBe(1); // AF=1
+        expect(attribute.type).toBe(14); // Type=14
+        expect(attribute.value.toString("hex")).toBe("0080"); // Value=0x0080
+        expect(attribute.length).toBe(0); // Length=0 for AF=1
+        console.log(attribute.toJSON());
     });
 
     it("serializes an Attribute object back to the original hex string", () => {

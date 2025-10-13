@@ -376,8 +376,8 @@ export class Transform {
     while (offset < buffer.length && iterationCount < maxIterations) {
       iterationCount++;
 
-      // Ensure we have at least 2 bytes for the attribute header
-      if (offset + 2 > buffer.length) {
+      // Ensure we have at least 4 bytes for the attribute header
+      if (offset + 4 > buffer.length) {
         throw new Error("Buffer too short for attribute header");
       }
 
@@ -386,12 +386,9 @@ export class Transform {
         attributes.push(attribute);
 
         // Calculate the actual length of the parsed attribute
-        const attributeLength =
-          attribute.length > 0
-            ? attribute.format === 0
-              ? 4 + attribute.length
-              : 2 + attribute.value.length
-            : 4; // Minimum fallback length
+        const attributeLength = attribute.format === 0
+          ? 4 + attribute.length
+          : 4; // AF=1 --> fixed 4 bytes, value is in the "length" field
 
         offset += attributeLength;
 
@@ -428,7 +425,7 @@ export class Transform {
     if (
       keyLengthAttribute &&
       keyLengthAttribute.value &&
-      keyLengthAttribute.value.length == 2
+      keyLengthAttribute.value.length === 2
     ) {
       return keyLengthAttribute.value.readUInt16BE(0);
     }
@@ -447,7 +444,7 @@ export class Transform {
       keyLengthAttribute.length = 0;
     } else {
       this.attributes.push(
-        new Attribute(1, attributeType.KeyLength, keyLengthBuffer, 2)
+        new Attribute(1, attributeType.KeyLength, keyLengthBuffer)
       );
     }
   }
