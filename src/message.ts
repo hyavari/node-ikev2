@@ -229,9 +229,16 @@ export class Message {
       this.header.nextPayload = this.payloads[0].type;
 
       for (let i = 0; i < this.payloads.length - 1; i++) {
+        if (this.payloads[i].type === payloadType.SK) {
+          throw new Error(
+            "SK payload must be the last payload in the message"
+          );
+        }
         this.payloads[i].nextPayload = this.payloads[i + 1].type;
       }
       if (this.payloads[this.payloads.length - 1].type != payloadType.SK) {
+        // The SK payload is special, having the nextType indicating the first inner payload type. It also must be the
+        // last payload in the message.
         this.payloads[this.payloads.length - 1].nextPayload = payloadType.NONE;
       }
     } else {
