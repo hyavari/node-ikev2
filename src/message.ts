@@ -231,8 +231,9 @@ export class Message {
       for (let i = 0; i < this.payloads.length - 1; i++) {
         this.payloads[i].nextPayload = this.payloads[i + 1].type;
       }
-
-      this.payloads[this.payloads.length - 1].nextPayload = payloadType.NONE;
+      if (this.payloads[this.payloads.length - 1].type != payloadType.SK) {
+        this.payloads[this.payloads.length - 1].nextPayload = payloadType.NONE;
+      }
     } else {
       this.header.nextPayload = payloadType.NONE;
     }
