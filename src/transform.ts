@@ -224,22 +224,22 @@ export enum integId {
 */
 export enum dhId {
   NONE = 0,
-  DH_768_bit = 1, // Deprecated by [RFC8247]
-  DH_1024_bit = 2,
+  DH_768_bit_MODP = 1, // Deprecated by [RFC8247]
+  DH_1024_bit_MODP = 2,
   // 3-4 Reserved
-  DH_1536_bit = 5, // [RFC3526]
+  DH_1536_bit_MODP = 5, // [RFC3526]
   // 6-13 Unassigned
-  DH_2048_bit = 14, // [RFC3526]
-  DH_3072_bit = 15, // [RFC3526]
-  DH_4096_bit = 16, // [RFC3526]
-  DH_6144_bit = 17, // [RFC3526]
-  DH_8192_bit = 18, // [RFC3526]
+  DH_2048_bit_MODP = 14, // [RFC3526]
+  DH_3072_bit_MODP = 15, // [RFC3526]
+  DH_4096_bit_MODP = 16, // [RFC3526]
+  DH_6144_bit_MODP = 17, // [RFC3526]
+  DH_8192_bit_MODP = 18, // [RFC3526]
   DH_256_bit_random_ECP = 19, // [RFC5903]
   DH_384_bit_random_ECP = 20, // [RFC5903]
   DH_521_bit_random_ECP = 21, // [RFC5903]
-  DH_1024_bit_with_160_bit_Prime_Order = 22, // [RFC5114] Deprecated by [RFC8247]
-  DH_2048_bit_with_224_bit_Prime_Order = 23, // [RFC5114]
-  DH_2048_bit_with_256_bit_Prime_Order = 24, // [RFC5114]
+  DH_1024_bit_MODP_with_160_bit_Prime_Order = 22, // [RFC5114] Deprecated by [RFC8247]
+  DH_2048_bit_MODP_with_224_bit_Prime_Order = 23, // [RFC5114]
+  DH_2048_bit_MODP_with_256_bit_Prime_Order = 24, // [RFC5114]
   DH_192_bit_random_ECP = 25, // [RFC5114]
   DH_224_bit_random_ECP = 26, // [RFC5114]
   DH_brainpoolP224r1 = 27, // [RFC6954]
@@ -295,7 +295,7 @@ export class Transform {
     public type: transformType,
     public id: number,
     public attributes: Attribute[]
-  ) {}
+  ) { }
 
   /**
    * Parses a transform from a buffer
@@ -376,8 +376,8 @@ export class Transform {
     while (offset < buffer.length && iterationCount < maxIterations) {
       iterationCount++;
 
-      // Ensure we have at least 2 bytes for the attribute header
-      if (offset + 2 > buffer.length) {
+      // Ensure we have at least 4 bytes for the attribute header
+      if (offset + 4 > buffer.length) {
         throw new Error("Buffer too short for attribute header");
       }
 
@@ -386,12 +386,9 @@ export class Transform {
         attributes.push(attribute);
 
         // Calculate the actual length of the parsed attribute
-        const attributeLength =
-          attribute.length > 0
-            ? attribute.format === 0
-              ? 4 + attribute.length
-              : 2 + attribute.value.length
-            : 4; // Minimum fallback length
+        const attributeLength = attribute.format === 0
+          ? 4 + attribute.length
+          : 4; // AF=1 --> fixed 4 bytes, value is in the "length" field
 
         offset += attributeLength;
 
@@ -428,7 +425,7 @@ export class Transform {
     if (
       keyLengthAttribute &&
       keyLengthAttribute.value &&
-      keyLengthAttribute.value.length == 2
+      keyLengthAttribute.value.length === 2
     ) {
       return keyLengthAttribute.value.readUInt16BE(0);
     }
@@ -447,7 +444,7 @@ export class Transform {
       keyLengthAttribute.length = 0;
     } else {
       this.attributes.push(
-        new Attribute(1, attributeType.KeyLength, keyLengthBuffer, 2)
+        new Attribute(1, attributeType.KeyLength, keyLengthBuffer)
       );
     }
   }
@@ -459,32 +456,24 @@ export class Transform {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
-    // Calculate total length first
-    const attributesLength = this.attributes.reduce(
-      (acc, attr) => acc + attr.serialize().length,
-      0
-    );
-    const totalLength = 8 + attributesLength;
+    // Encode deep attributes first
+    const attributes = this.attributes.map((attr) => attr.serialize());
+    const attributesBuffer = Buffer.concat(attributes);
+
+    // Fix the length
+    this.length = 8 + attributesBuffer.length;
 
     // Allocate a buffer with the exact length
-    const buffer = Buffer.alloc(totalLength);
-
+    const buffer = Buffer.alloc(this.length);
     // Serialize fields into the buffer
     buffer.writeUInt8(this.lastSubstructure, 0); // First byte: lastSubstructure
     buffer.writeUInt8(0, 1);
-    buffer.writeUInt16BE(totalLength, 2); // Transform Length (2 bytes)
+    buffer.writeUInt16BE(this.length, 2); // Transform Length (2 bytes)
     buffer.writeUInt8(this.type, 4); // Transform Type (1 byte)
     buffer.writeUInt8(0, 5); // Reserved (1 byte)
     buffer.writeUInt16BE(this.id, 6); // Transform ID (2 bytes)
 
-    // Copy attributes directly into buffer instead of using Buffer.concat
-    let offset = 8;
-
-    for (const attribute of this.attributes) {
-      const attributeBuffer = attribute.serialize();
-      attributeBuffer.copy(buffer, offset);
-      offset += attributeBuffer.length;
-    }
+    attributesBuffer.copy(buffer, 8); // Copy attributes starting at byte 8
 
     return buffer;
   }

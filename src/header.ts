@@ -64,7 +64,7 @@ export class Header {
     public canUseHigherVersion: boolean,
     public isResponse: boolean,
     public messageID: number,
-    public length: number
+    public length: number = 0 // if left as 0, it will be calculated during serialization
   ) {
     // Validate SPI buffers
     if (!Buffer.isBuffer(initiatorSPI) || initiatorSPI.length !== 8) {
@@ -107,7 +107,7 @@ export class Header {
     }
 
     // Validate minimum length
-    if (length < Header.headerLength) {
+    if (length < Header.headerLength && length !== 0) {
       throw new Error(
         `Length must be at least ${Header.headerLength} bytes, got ${length}`
       );

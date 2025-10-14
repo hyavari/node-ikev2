@@ -224,9 +224,31 @@ export class Message {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
-    const headerBuffer = this.header.serialize();
+    // Resolve the nextPayload fields, to ensure that we send a valid message
+    if (this.payloads.length > 0) {
+      this.header.nextPayload = this.payloads[0].type;
+
+      for (let i = 0; i < this.payloads.length - 1; i++) {
+        this.payloads[i].nextPayload = this.payloads[i + 1].type;
+      }
+
+      this.payloads[this.payloads.length - 1].nextPayload = payloadType.NONE;
+    } else {
+      this.header.nextPayload = payloadType.NONE;
+    }
+
+    // Serialize the payloads first, since we need their lengths to compute the total message length
     const payloadsBuffers = this.payloads.map((payload) => payload.serialize());
-    return Buffer.concat([headerBuffer, ...payloadsBuffers]);
+    const payloadsBuffer = Buffer.concat(payloadsBuffers);
+
+    // Update header length
+    this.header.length = Header.headerLength + payloadsBuffer.length;
+
+    // Serialize header
+    const headerBuffer = this.header.serialize();
+
+    // Concatenate header and payloads
+    return Buffer.concat([headerBuffer, payloadsBuffer]);
   }
 
   /**

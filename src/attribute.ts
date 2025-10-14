@@ -43,9 +43,9 @@ export class Attribute {
       throw new Error("Input must be a Buffer");
     }
 
-    if (buffer.length < 2) {
+    if (buffer.length < 4) {
       throw new Error(
-        "Buffer too short for attribute header (minimum 2 bytes)"
+        "Buffer too short for attribute header (minimum 4 bytes)"
       );
     }
 
@@ -55,10 +55,6 @@ export class Attribute {
 
       if (format === 0) {
         // TLV format: Type(2) + Length(2) + Value(n)
-        if (buffer.length < 4) {
-          throw new Error("Buffer too short for TLV attribute length field");
-        }
-
         const length = buffer.readUInt16BE(2);
 
         if (buffer.length < 4 + length) {
@@ -71,8 +67,8 @@ export class Attribute {
         return new Attribute(format, type, value, length);
       } else {
         // TV format: Type(2) + Value(n)
-        const value = buffer.subarray(2, buffer.length);
-        return new Attribute(format, type, value, value.length);
+        const value = buffer.subarray(2, 4); // Fixed 2 bytes for TV
+        return new Attribute(format, type, value);
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -122,7 +118,7 @@ export class Attribute {
       return buffer;
     } else {
       // TV format: Type(2) + Value(n)
-      const buffer = Buffer.alloc(2 + this.value.length);
+      const buffer = Buffer.alloc(4);
 
       // Write format (1 bit) and type (15 bits) as a 16-bit value
       buffer.writeUInt16BE((this.format << 15) | this.type, 0);
@@ -156,17 +152,25 @@ export class Attribute {
    */
   public toString(): string {
     const prettyJson = this.toJSON();
-    prettyJson.format =
-      prettyJson.format === 1
-        ? `TV (Type/Value) (${prettyJson.format})`
-        : `TLV (Type/Length/Value) (${prettyJson.format})`;
-    prettyJson.type =
-      prettyJson.type === 14
-        ? `Key Length (${prettyJson.type})`
-        : prettyJson.type;
+    if (prettyJson.format === 1) {
+      prettyJson.format = `TV (Type/Value) (${prettyJson.format})`
+      prettyJson.length = undefined; // not applicable for TV format
+      if (this.value.length === 2) {
+        prettyJson.valueUint = this.value.readUInt16BE(0); // assuming 2 bytes for TV value
+      }
+    } else {
+      prettyJson.format = `TLV (Type/Length/Value) (${prettyJson.format})`
+    }
+
+    switch (prettyJson.type) {
+      case 14:
+        prettyJson.type = `Key Length (${prettyJson.type})`;
+        break;
+      default:
+        break;
+    }
 
     // it is just a representation of the value in this case, it is not the actual length
-    prettyJson.length = parseInt(prettyJson.value, 16) ?? "N/A";
     return JSON.stringify(prettyJson, null, 2);
   }
 }
