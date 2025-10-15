@@ -2056,11 +2056,24 @@ export class PayloadSK extends Payload {
   ): {
     iv: Buffer;
   } {
-    this.nextPayload =
-      inClearPayloads.length === 0 ? payloadType.NONE : inClearPayloads[0].type;
+    if (inClearPayloads.length === 0) {
+      throw new Error(
+        "No in-clear payloads to encrypt - must contain at least one payload"
+      );
+    }
+
+    // Fix the nextPayload in the SK payload and the inner payloads
+    this.nextPayload = inClearPayloads[0].type;
+    for (let i = 0; i < inClearPayloads.length - 1; i++) {
+      inClearPayloads[i].nextPayload = inClearPayloads[i + 1].type;
+    }
+    inClearPayloads[inClearPayloads.length - 1].nextPayload = payloadType.NONE;
+
+    // Serialize all payloads to encrypt
     const inClearData = Buffer.concat(
       inClearPayloads.map((p) => p.serialize())
     );
+
     const { skPayloadData, iv } = encryptFunction(inClearData, aad);
     this.encryptedData = skPayloadData;
     return { iv: iv };
