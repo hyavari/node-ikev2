@@ -1,0 +1,26 @@
+# Source files (users only need compiled JavaScript)
+src/
+tests/
+
+# Development files
+*.test.ts
+*.test.js
+.eslintrc*
+eslint.config.mjs
+jest.config.js
+tsconfig.json
+
+# Git files
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+
+# Misc
+pcap/
+coverage/
+*.log
+.DS_Store
+

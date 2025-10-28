@@ -1,20 +1,39 @@
 {
   "name": "node-ikev2",
   "title": "Node-IKEV2",
-  "version": "1.0.0",
-  "description": "Implementation of IKEV2 for Node.js",
-  "main": "./lib/index.js",
-  "module": "./lib/index.js",
+  "version": "0.1.0",
+  "description": "IKEv2 parser and serializer for Node.js",
+  "main": "./lib/src/index.js",
+  "types": "./lib/src/index.d.ts",
+  "module": "./lib/src/index.js",
+  "files": [
+    "lib/src",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "lint": "eslint 'src/**/*.ts'",
     "lint-fix": "eslint 'src/**/*.ts' --fix",
     "test": "jest",
-    "build-and-test": "npm run build && npm run test"
+    "build-and-test": "npm run build && npm run test",
+    "prepublishOnly": "npm run build-and-test"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hyavari/node-ikev2.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hyavari/node-ikev2/issues"
+  },
+  "homepage": "https://github.com/hyavari/node-ikev2#readme",
   "keywords": [
     "ikev2",
-    "ipsec"
+    "ipsec",
+    "vpn",
+    "security",
+    "cryptography",
+    "parser"
   ],
   "author": "Hossein Yavari",
   "license": "ISC",

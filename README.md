@@ -20,13 +20,18 @@ A TypeScript parser for Internet Key Exchange Version 2 (IKEv2) protocol, design
 
 • **Message**: The main class to parse and serialize IKEv2 messages, which combines the header and payloads.
 
+### Installation
+
+```sh
+npm install node-ikev2
+```
 
 ### Usage
 
-Import the necessary classes and use the parser to handle IKEv2 packets. Here’s a quick example:
+Import the necessary classes and use the parser to handle IKEv2 packets. Here's a quick example:
 
 ```ts
-import { Message } from "./src/message"; // Adjust path if necessary
+import { Message } from "node-ikev2";
 
 // Example hex string representing an IKEv2 packet
 const packetHex = "800e0080...";
@@ -44,7 +49,6 @@ message.header.version = 2; // Modify as needed
 // Serializing the message back to binary format
 const serialized = message.serialize();
 console.log("Serialized Packet (hex):", serialized.toString("hex"));
-
 ```
 
 ### Testing
@@ -76,7 +80,7 @@ You can check the IKEv2 messages and their content in this Pcap sample from Wire
 
 Contributions are welcome! To contribute:
 
-1.	Fork the repository.
-2.	Create a new branch for your feature or bugfix.
-3.	Write tests for any new functionality.
-4.	Open a pull request with a clear description of changes.
+1. Fork the repository.
+2. Create a new branch for your feature or bugfix.
+3. Write tests for any new functionality.
+4. Open a pull request with a clear description of changes.
