@@ -2202,7 +2202,7 @@ export class PayloadCP extends Payload {
 export class PayloadEAP extends Payload {
   constructor(
     public nextPayload: payloadType,
-    public tlvData: Attribute,
+    public eapMessage: Buffer,
     public critical: boolean = false,
     public length: number = 0
   ) {
@@ -2210,7 +2210,7 @@ export class PayloadEAP extends Payload {
       payloadType.EAP,
       nextPayload,
       critical,
-      length > 0 ? length : 4 + tlvData.length
+      length > 0 ? length : 4 + eapMessage.length
     );
   }
 
@@ -2223,11 +2223,11 @@ export class PayloadEAP extends Payload {
    */
   public static parse(buffer: Buffer): PayloadEAP {
     const genericPayload = Payload.parse(buffer);
-    const tlvData = Attribute.parse(buffer.subarray(4, genericPayload.length));
+    const eapMessage = buffer.subarray(4, genericPayload.length);
 
     return new PayloadEAP(
       genericPayload.nextPayload,
-      tlvData,
+      eapMessage,
       genericPayload.critical,
       genericPayload.length
     );
@@ -2244,8 +2244,7 @@ export class PayloadEAP extends Payload {
     const buffer = Buffer.alloc(json.length);
     const genericPayload = Payload.serializeJSON(json);
     genericPayload.copy(buffer);
-    const tlvDataBuffer = Attribute.serializeJSON(json.tlvData);
-    tlvDataBuffer.copy(buffer, 4);
+    Buffer.from(json.eapMessage, "hex").copy(buffer, 4);
     return buffer;
   }
 
@@ -2255,15 +2254,12 @@ export class PayloadEAP extends Payload {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
-    // Encode deep first to calculate length
-    const tlvDataBuffer = this.tlvData.serialize();
-
     // Fix the length
-    this.length = 4 + tlvDataBuffer.length;
+    this.length = 4 + this.eapMessage.length;
 
     const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
-    tlvDataBuffer.copy(buffer, 4);
+    this.eapMessage.copy(buffer, 4);
     return buffer;
   }
 
@@ -2274,7 +2270,7 @@ export class PayloadEAP extends Payload {
    */
   public toJSON(): Record<string, any> {
     const json = super.genToJSON();
-    json.tlvData = this.tlvData.toJSON();
+    json.eapMessage = this.eapMessage.toString("hex");
     return json;
   }
 
@@ -2285,7 +2281,7 @@ export class PayloadEAP extends Payload {
    */
   public toString(): string {
     const genericString = super.genToString();
-    return `${genericString}\ntlvData: ${this.tlvData.toString()}`;
+    return `${genericString}\neapMessage: ${this.eapMessage.toString("hex")}`;
   }
 }
 
