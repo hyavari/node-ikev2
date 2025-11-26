@@ -2223,11 +2223,11 @@ export class PayloadEAP extends Payload {
    */
   public static parse(buffer: Buffer): PayloadEAP {
     const genericPayload = Payload.parse(buffer);
-    const eapmessage = buffer.subarray(4, genericPayload.length);
+    const eapMessage = buffer.subarray(4, genericPayload.length);
 
     return new PayloadEAP(
       genericPayload.nextPayload,
-      eapmessage,
+      eapMessage,
       genericPayload.critical,
       genericPayload.length
     );
