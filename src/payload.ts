@@ -2005,6 +2005,9 @@ export class PayloadSK extends Payload {
       const payload = nextPayloadClass.parse(
         inClearData.subarray(offset, inClearData.length)
       );
+      // Some extended types set NONE in type from the constructor on parse, when there are multiple types with the same
+      // encoding - e.g. PayloadID with IDi and IDr
+      payload.type = nextPayload;
 
       payloads.push(payload);
       offset += payload.length;
