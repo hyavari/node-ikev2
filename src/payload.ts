@@ -1058,7 +1058,8 @@ export class PayloadAUTH extends Payload {
   public static parse(buffer: Buffer): PayloadAUTH {
     const genericPayload = Payload.parse(buffer);
     const authMethod = buffer.readUInt8(4);
-    const authData = buffer.subarray(5, genericPayload.length);
+    // Skip 3 reserved bytes
+    const authData = buffer.subarray(8, genericPayload.length);
 
     return new PayloadAUTH(
       genericPayload.nextPayload,
