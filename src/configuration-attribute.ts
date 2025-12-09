@@ -1053,16 +1053,7 @@ export function formatIPv6AddressBuffer(addressBuffer: Buffer): string {
   if (maxZeroLength > 1) {
     const before = parts.slice(0, maxZeroIndex).join(':');
     const after = parts.slice(maxZeroIndex + maxZeroLength).join(':');
-    let result = `${before}::${after}`;
-    if (result.startsWith('::') && result.length > 2) {
-      result = '::' + after;
-    } else if (result.endsWith('::') && result.length > 2) {
-      result = before + '::';
-    } else if (result === '::') {
-      // Handle "0:0:0:0:0:0:0:0" case
-      result = '::';
-    }
-    return result;
+    return `${before}::${after}`;
   } else {
     return parts.join(':');
   }
