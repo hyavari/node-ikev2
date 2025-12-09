@@ -915,6 +915,9 @@ export function parseIPv4AddressString(addressString: string): Buffer {
 }
 
 export function formatIPv4AddressBuffer(buffer: Buffer): string {
+  if (buffer.length !== 4) {
+    throw new Error("Invalid IPv4 address");
+  }
   const parts = [
     buffer.readUInt8(0),
     buffer.readUInt8(1),
