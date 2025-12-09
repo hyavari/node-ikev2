@@ -199,7 +199,7 @@ export class ConfigurationAttribute {
     let offset = 0;
 
     while (offset < buffer.length) {
-      const attributeType = buffer.readUInt16BE(offset) & 0x7fff;
+      // const attributeType = buffer.readUInt16BE(offset) & 0x7fff;
       const attributeLength = buffer.readUInt16BE(offset + 2);
       const attributeBuffer = buffer.subarray(offset, offset + 4 + attributeLength);
       const attribute = ConfigurationAttribute.parse(attributeBuffer);
