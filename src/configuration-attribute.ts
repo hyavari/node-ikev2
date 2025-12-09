@@ -207,7 +207,7 @@ export class ConfigurationAttribute {
       const attribute = ConfigurationAttribute.parse(attributeBuffer);
 
       attributes.push(attribute);
-      offset += attributeLength;
+      offset += 4 + attributeLength;
     }
 
     return attributes;
