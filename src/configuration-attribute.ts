@@ -849,6 +849,48 @@ export class CP_Attributes {
    */
   public serialize(): Buffer {
     let buffer = Buffer.alloc(0);
+    for (let attribute of this.INTERNAL_IP4_ADDRESS) {
+      buffer = Buffer.concat([buffer, attribute.serialize()]);
+    }
+    if (this.INTERNAL_IP4_NETMASK) {
+      buffer = Buffer.concat([buffer, this.INTERNAL_IP4_NETMASK.serialize()]);
+    }
+    for (let attribute of this.INTERNAL_IP4_DNS) {
+      buffer = Buffer.concat([buffer, attribute.serialize()]);
+    }
+    for (let attribute of this.INTERNAL_IP4_NBNS) {
+      buffer = Buffer.concat([buffer, attribute.serialize()]);
+    }
+    for (let attribute of this.INTERNAL_IP4_DHCP) {
+      buffer = Buffer.concat([buffer, attribute.serialize()]);
+    }
+    if (this.APPLICATION_VERSION) {
+      buffer = Buffer.concat([buffer, this.APPLICATION_VERSION.serialize()]);
+    }
+    for (let attribute of this.INTERNAL_IP6_ADDRESS) {
+      buffer = Buffer.concat([buffer, attribute.serialize()]);
+    }
+    for (let attribute of this.INTERNAL_IP6_DNS) {
+      buffer = Buffer.concat([buffer, attribute.serialize()]);
+    }
+    for (let attribute of this.INTERNAL_IP6_DHCP) {
+      buffer = Buffer.concat([buffer, attribute.serialize()]);
+    }
+    for (let attribute of this.INTERNAL_IP4_SUBNET) {
+      buffer = Buffer.concat([buffer, attribute.serialize()]);
+    }
+    if (this.SUPPORTED_ATTRIBUTES) {
+      buffer = Buffer.concat([buffer, this.SUPPORTED_ATTRIBUTES.serialize()]);
+    }
+    for (let attribute of this.INTERNAL_IP6_SUBNET) {
+      buffer = Buffer.concat([buffer, attribute.serialize()]);
+    }
+    for (let attribute of this.P_CSCF_IP4_ADDRESS) {
+      buffer = Buffer.concat([buffer, attribute.serialize()]);
+    }
+    for (let attribute of this.P_CSCF_IP6_ADDRESS) {
+      buffer = Buffer.concat([buffer, attribute.serialize()]);
+    }
     for (let attribute of this.OtherAttributes) {
       buffer = Buffer.concat([buffer, attribute.serialize()]);
     }
