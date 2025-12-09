@@ -245,11 +245,11 @@ export class INTERNAL_IP4_ADDRESS extends ConfigurationAttribute {
     super(configurationAttributeType.INTERNAL_IP4_ADDRESS, address);
   }
 
-  public parse(buffer: Buffer): void {
+  public static parse(buffer: Buffer): INTERNAL_IP4_ADDRESS {
     if (buffer.length !== 4) {
       throw new Error("Invalid value length for INTERNAL_IP4_ADDRESS");
     }
-    this.address = buffer.subarray(0, 4);
+    return new INTERNAL_IP4_ADDRESS(buffer.subarray(0, 4));
   }
 
   public static serializeJSON(json: Record<string, any>): Buffer {
@@ -277,11 +277,11 @@ export class INTERNAL_IP4_NETMASK extends ConfigurationAttribute {
     super(configurationAttributeType.INTERNAL_IP4_NETMASK, netmask);
   }
 
-  public parse(buffer: Buffer): void {
+  public static parse(buffer: Buffer): INTERNAL_IP4_NETMASK {
     if (buffer.length !== 4) {
       throw new Error("Invalid value length for INTERNAL_IP4_NETMASK");
     }
-    this.netmask = buffer.subarray(0, 4);
+    return new INTERNAL_IP4_NETMASK(buffer.subarray(0, 4));
   }
 
   public static serializeJSON(json: Record<string, any>): Buffer {
@@ -309,11 +309,11 @@ export class INTERNAL_IP4_DNS extends ConfigurationAttribute {
     super(configurationAttributeType.INTERNAL_IP4_DNS, dns);
   }
 
-  public parse(buffer: Buffer): void {
+  public static parse(buffer: Buffer): INTERNAL_IP4_DNS {
     if (buffer.length !== 4) {
       throw new Error("Invalid value length for INTERNAL_IP4_DNS");
     }
-    this.dns = buffer.subarray(0, 4);
+    return new INTERNAL_IP4_DNS(buffer.subarray(0, 4));
   }
 
   public static serializeJSON(json: Record<string, any>): Buffer {
@@ -341,11 +341,11 @@ export class INTERNAL_IP4_NBNS extends ConfigurationAttribute {
     super(configurationAttributeType.INTERNAL_IP4_NBNS, nbns);
   }
 
-  public parse(buffer: Buffer): void {
+  public static parse(buffer: Buffer): INTERNAL_IP4_NBNS {
     if (buffer.length !== 4) {
       throw new Error("Invalid value length for INTERNAL_IP4_NBNS");
     }
-    this.nbns = buffer.subarray(0, 4);
+    return new INTERNAL_IP4_NBNS(buffer.subarray(0, 4));
   }
 
   public static serializeJSON(json: Record<string, any>): Buffer {
@@ -373,11 +373,11 @@ export class INTERNAL_IP4_DHCP extends ConfigurationAttribute {
     super(configurationAttributeType.INTERNAL_IP4_DHCP, dhcp);
   }
 
-  public parse(buffer: Buffer): void {
+  public static parse(buffer: Buffer): INTERNAL_IP4_DHCP {
     if (buffer.length !== 4) {
       throw new Error("Invalid value length for INTERNAL_IP4_DHCP");
     }
-    this.dhcp = buffer.subarray(0, 4);
+    return new INTERNAL_IP4_DHCP(buffer.subarray(0, 4));
   }
 
   public static serializeJSON(json: Record<string, any>): Buffer {
@@ -402,8 +402,8 @@ export class APPLICATION_VERSION extends ConfigurationAttribute {
     super(configurationAttributeType.APPLICATION_VERSION, Buffer.from(versionString));
   }
 
-  public parse(buffer: Buffer): void {
-    this.versionString = buffer.toString("utf8");
+  public static parse(buffer: Buffer): APPLICATION_VERSION {
+    return new APPLICATION_VERSION(buffer.toString("utf8"));
   }
 
   public static serializeJSON(json: Record<string, any>): Buffer {
@@ -438,12 +438,11 @@ export class INTERNAL_IP6_ADDRESS extends ConfigurationAttribute {
     super(configurationAttributeType.INTERNAL_IP6_ADDRESS, value);
   }
 
-  public parse(buffer: Buffer): void {
+  public static parse(buffer: Buffer): INTERNAL_IP6_ADDRESS {
     if (buffer.length !== 17) {
       throw new Error("Invalid value length for INTERNAL_IP6_ADDRESS");
     }
-    this.address = buffer.subarray(0, 16);
-    this.prefixLength = buffer.readUInt8(16);
+    return new INTERNAL_IP6_ADDRESS(buffer.subarray(0, 16), buffer.readUInt8(16));
   }
 
   public static serializeJSON(json: Record<string, any>): Buffer {
@@ -473,11 +472,11 @@ export class INTERNAL_IP6_DNS extends ConfigurationAttribute {
     super(configurationAttributeType.INTERNAL_IP6_DNS, dns);
   }
 
-  public parse(buffer: Buffer): void {
+  public static parse(buffer: Buffer): INTERNAL_IP6_DNS {
     if (buffer.length !== 16) {
       throw new Error("Invalid value length for INTERNAL_IP6_DNS");
     }
-    this.dns = buffer.subarray(0, 16);
+    return new INTERNAL_IP6_DNS(buffer.subarray(0, 16));
   }
 
   public static serializeJSON(json: Record<string, any>): Buffer {
@@ -505,11 +504,11 @@ export class INTERNAL_IP6_DHCP extends ConfigurationAttribute {
     super(configurationAttributeType.INTERNAL_IP6_DHCP, dhcp);
   }
 
-  public parse(buffer: Buffer): void {
+  public static parse(buffer: Buffer): INTERNAL_IP6_DHCP {
     if (buffer.length !== 16) {
       throw new Error("Invalid value length for INTERNAL_IP6_DHCP");
     }
-    this.dhcp = buffer.subarray(0, 16);
+    return new INTERNAL_IP6_DHCP(buffer.subarray(0, 16));
   }
 
   public static serializeJSON(json: Record<string, any>): Buffer {
@@ -543,12 +542,11 @@ export class INTERNAL_IP4_SUBNET extends ConfigurationAttribute {
     super(configurationAttributeType.INTERNAL_IP4_SUBNET, value);
   }
 
-  public parse(buffer: Buffer): void {
+  public static parse(buffer: Buffer): INTERNAL_IP4_SUBNET {
     if (buffer.length !== 8) {
       throw new Error("Invalid value length for INTERNAL_IP4_SUBNET");
     }
-    this.address = buffer.subarray(0, 4);
-    this.netmask = buffer.subarray(4, 8);
+    return new INTERNAL_IP4_SUBNET(buffer.subarray(0, 4), buffer.subarray(4, 8));
   }
 
   public static serializeJSON(json: Record<string, any>): Buffer {
@@ -579,14 +577,15 @@ export class SUPPORTED_ATTRIBUTES extends ConfigurationAttribute {
     super(configurationAttributeType.SUPPORTED_ATTRIBUTES, value);
   }
 
-  public parse(buffer: Buffer): void {
+  public static parse(buffer: Buffer): SUPPORTED_ATTRIBUTES {
     if (buffer.length % 2 !== 0) {
       throw new Error("Invalid value length for SUPPORTED_ATTRIBUTES");
     }
-    this.values = [];
+    const values = [];
     for (let i = 0; i < buffer.length; i += 2) {
-      this.values.push(buffer.readUInt16BE(i));
+      values.push(buffer.readUInt16BE(i));
     }
+    return new SUPPORTED_ATTRIBUTES(values);
   }
 
   public static serializeJSON(json: Record<string, any>): Buffer {
@@ -619,12 +618,11 @@ export class INTERNAL_IP6_SUBNET extends ConfigurationAttribute {
     super(configurationAttributeType.INTERNAL_IP6_SUBNET, value);
   }
 
-  public parse(buffer: Buffer): void {
+  public static parse(buffer: Buffer): INTERNAL_IP6_SUBNET {
     if (buffer.length !== 17) {
       throw new Error("Invalid value length for INTERNAL_IP6_SUBNET");
     }
-    this.address = buffer.subarray(0, 16);
-    this.prefixLength = buffer.readUInt8(16);
+    return new INTERNAL_IP6_SUBNET(buffer.subarray(0, 16), buffer.readUInt8(16));
   }
 
   public static serializeJSON(json: Record<string, any>): Buffer {
@@ -654,11 +652,11 @@ export class P_CSCF_IP4_ADDRESS extends ConfigurationAttribute {
     super(configurationAttributeType.P_CSCF_IP4_ADDRESS, address);
   }
 
-  public parse(buffer: Buffer): void {
+  public static parse(buffer: Buffer): P_CSCF_IP4_ADDRESS {
     if (buffer.length !== 4) {
       throw new Error("Invalid value length for P_CSCF_IP4_ADDRESS");
     }
-    this.address = buffer.subarray(0, 4);
+    return new P_CSCF_IP4_ADDRESS(buffer.subarray(0, 4));
   }
 
   public static serializeJSON(json: Record<string, any>): Buffer {
@@ -686,11 +684,11 @@ export class P_CSCF_IP6_ADDRESS extends ConfigurationAttribute {
     super(configurationAttributeType.P_CSCF_IP6_ADDRESS, address);
   }
 
-  public parse(buffer: Buffer): void {
+  public static parse(buffer: Buffer): P_CSCF_IP6_ADDRESS {
     if (buffer.length !== 16) {
       throw new Error("Invalid value length for P_CSCF_IP6_ADDRESS");
     }
-    this.address = buffer.subarray(0, 16);
+    return new P_CSCF_IP6_ADDRESS(buffer.subarray(0, 16));
   }
 
   public static serializeJSON(json: Record<string, any>): Buffer {
@@ -749,90 +747,48 @@ export class CP_Attributes {
     let attributes = ConfigurationAttribute.parseConfigurationAttributes(buffer);
     for (let attribute of attributes) {
       switch (attribute.type) {
-        case configurationAttributeType.INTERNAL_IP4_ADDRESS: {
-          let typedAttribute = {} as INTERNAL_IP4_ADDRESS;
-          typedAttribute.parse(attribute.value);
-          this.INTERNAL_IP4_ADDRESS.push(typedAttribute);
+        case configurationAttributeType.INTERNAL_IP4_ADDRESS:
+          this.INTERNAL_IP4_ADDRESS.push(INTERNAL_IP4_ADDRESS.parse(attribute.value));
           break;
-        }
-        case configurationAttributeType.INTERNAL_IP4_NETMASK: {
-          let typedAttribute = {} as INTERNAL_IP4_NETMASK;
-          typedAttribute.parse(attribute.value);
-          this.INTERNAL_IP4_NETMASK = typedAttribute;
+        case configurationAttributeType.INTERNAL_IP4_NETMASK:
+          this.INTERNAL_IP4_NETMASK = INTERNAL_IP4_NETMASK.parse(attribute.value);
           break;
-        }
-        case configurationAttributeType.INTERNAL_IP4_DNS: {
-          let typedAttribute = {} as INTERNAL_IP4_DNS;
-          typedAttribute.parse(attribute.value);
-          this.INTERNAL_IP4_DNS.push(typedAttribute);
+        case configurationAttributeType.INTERNAL_IP4_DNS:
+          this.INTERNAL_IP4_DNS.push(INTERNAL_IP4_DNS.parse(attribute.value));
           break;
-        }
-        case configurationAttributeType.INTERNAL_IP4_NBNS: {
-          let typedAttribute = {} as INTERNAL_IP4_NBNS;
-          typedAttribute.parse(attribute.value);
-          this.INTERNAL_IP4_NBNS.push(typedAttribute);
+        case configurationAttributeType.INTERNAL_IP4_NBNS:
+          this.INTERNAL_IP4_NBNS.push(INTERNAL_IP4_NBNS.parse(attribute.value));
           break;
-        }
-        case configurationAttributeType.INTERNAL_IP4_DHCP: {
-          let typedAttribute = {} as INTERNAL_IP4_DHCP;
-          typedAttribute.parse(attribute.value);
-          this.INTERNAL_IP4_DHCP.push(typedAttribute);
+        case configurationAttributeType.INTERNAL_IP4_DHCP:
+          this.INTERNAL_IP4_DHCP.push(INTERNAL_IP4_DHCP.parse(attribute.value));
           break;
-        }
-        case configurationAttributeType.APPLICATION_VERSION: {
-          let typedAttribute = {} as APPLICATION_VERSION;
-          typedAttribute.parse(attribute.value);
-          this.APPLICATION_VERSION = typedAttribute;
+        case configurationAttributeType.APPLICATION_VERSION:
+          this.APPLICATION_VERSION = APPLICATION_VERSION.parse(attribute.value);
           break;
-        }
-        case configurationAttributeType.INTERNAL_IP6_ADDRESS: {
-          let typedAttribute = {} as INTERNAL_IP6_ADDRESS;
-          typedAttribute.parse(attribute.value);
-          this.INTERNAL_IP6_ADDRESS.push(typedAttribute);
+        case configurationAttributeType.INTERNAL_IP6_ADDRESS:
+          this.INTERNAL_IP6_ADDRESS.push(INTERNAL_IP6_ADDRESS.parse(attribute.value));
           break;
-        }
-        case configurationAttributeType.INTERNAL_IP6_DNS: {
-          let typedAttribute = {} as INTERNAL_IP6_DNS;
-          typedAttribute.parse(attribute.value);
-          this.INTERNAL_IP6_DNS.push(typedAttribute);
+        case configurationAttributeType.INTERNAL_IP6_DNS:
+          this.INTERNAL_IP6_DNS.push(INTERNAL_IP6_DNS.parse(attribute.value));
           break;
-        }
-        case configurationAttributeType.INTERNAL_IP6_DHCP: {
-          let typedAttribute = {} as INTERNAL_IP6_DHCP;
-          typedAttribute.parse(attribute.value);
-          this.INTERNAL_IP6_DHCP.push(typedAttribute);
+        case configurationAttributeType.INTERNAL_IP6_DHCP:
+          this.INTERNAL_IP6_DHCP.push(INTERNAL_IP6_DHCP.parse(attribute.value));
           break;
-        }
-        case configurationAttributeType.INTERNAL_IP4_SUBNET: {
-          let typedAttribute = {} as INTERNAL_IP4_SUBNET;
-          typedAttribute.parse(attribute.value);
-          this.INTERNAL_IP4_SUBNET.push(typedAttribute);
+        case configurationAttributeType.INTERNAL_IP4_SUBNET:
+          this.INTERNAL_IP4_SUBNET.push(INTERNAL_IP4_SUBNET.parse(attribute.value));
           break;
-        }
-        case configurationAttributeType.SUPPORTED_ATTRIBUTES: {
-          let typedAttribute = {} as SUPPORTED_ATTRIBUTES;
-          typedAttribute.parse(attribute.value);
-          this.SUPPORTED_ATTRIBUTES = typedAttribute;
+        case configurationAttributeType.SUPPORTED_ATTRIBUTES:
+          this.SUPPORTED_ATTRIBUTES = SUPPORTED_ATTRIBUTES.parse(attribute.value);
           break;
-        }
-        case configurationAttributeType.INTERNAL_IP6_SUBNET: {
-          let typedAttribute = {} as INTERNAL_IP6_SUBNET;
-          typedAttribute.parse(attribute.value);
-          this.INTERNAL_IP6_SUBNET.push(typedAttribute);
+        case configurationAttributeType.INTERNAL_IP6_SUBNET:
+          this.INTERNAL_IP6_SUBNET.push(INTERNAL_IP6_SUBNET.parse(attribute.value));
           break;
-        }
-        case configurationAttributeType.P_CSCF_IP4_ADDRESS: {
-          let typedAttribute = {} as P_CSCF_IP4_ADDRESS;
-          typedAttribute.parse(attribute.value);
-          this.P_CSCF_IP4_ADDRESS.push(typedAttribute);
+        case configurationAttributeType.P_CSCF_IP4_ADDRESS:
+          this.P_CSCF_IP4_ADDRESS.push(P_CSCF_IP4_ADDRESS.parse(attribute.value));
           break;
-        }
-        case configurationAttributeType.P_CSCF_IP6_ADDRESS: {
-          let typedAttribute = {} as P_CSCF_IP6_ADDRESS;
-          typedAttribute.parse(attribute.value);
-          this.P_CSCF_IP6_ADDRESS.push(typedAttribute);
+        case configurationAttributeType.P_CSCF_IP6_ADDRESS:
+          this.P_CSCF_IP6_ADDRESS.push(P_CSCF_IP6_ADDRESS.parse(attribute.value));
           break;
-        }
         default:
           this.OtherAttributes.push(attribute);
           break;
