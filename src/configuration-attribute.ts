@@ -152,7 +152,7 @@ export class ConfigurationAttribute {
         );
       }
 
-      const value = buffer.subarray(4, length);
+      const value = buffer.subarray(4, 4 + length);
       return new ConfigurationAttribute(attributeType, value);
     } catch (error) {
       throw new Error(`Failed to parse Configuration Attribute from buffer ${buffer.toString("hex")}: ${error}`);
