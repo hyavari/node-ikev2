@@ -166,7 +166,7 @@ describe('formatIPv6AddressBuffer', () => {
         expect(formatIPv6AddressBuffer(buffer)).toEqual('::');
     });
 
-    it('should correctly format the a prefix 2001:db8::', () => {
+    it('should correctly format the prefix 2001:db8::', () => {
         const buffer = Buffer.alloc(16);
         buffer.writeUInt16BE(0x2001, 0);
         buffer.writeUInt16BE(0xdb8, 2);

@@ -140,21 +140,17 @@ export class ConfigurationAttribute {
       );
     }
 
-    try {
-      const attributeType = buffer.readUInt16BE(0) & 0x7fff;
-      const length = buffer.readUInt16BE(2);
+    const attributeType = buffer.readUInt16BE(0) & 0x7fff;
+    const length = buffer.readUInt16BE(2);
 
-      if (buffer.length < 4 + length) {
-        throw new Error(
-          `Buffer too short for TLV attribute value. Expected ${4 + length} bytes, got ${buffer.length}`
-        );
-      }
-
-      const value = buffer.subarray(4, 4 + length);
-      return new ConfigurationAttribute(attributeType, value);
-    } catch (error) {
-      throw new Error(`Failed to parse Configuration Attribute from buffer ${buffer.toString("hex")}: ${error}`);
+    if (buffer.length < 4 + length) {
+      throw new Error(
+        `Buffer too short for TLV attribute value. Expected ${4 + length} bytes, got ${buffer.length}`
+      );
     }
+
+    const value = buffer.subarray(4, 4 + length);
+    return new ConfigurationAttribute(attributeType, value);
   }
 
   /**
@@ -895,7 +891,11 @@ export function parseIPv4AddressString(addressString: string): Buffer {
     if (!/^\d+$/.test(p)) {
       throw new Error(`Invalid IPv4 address: part "${p}" contains non-digit characters.`);
     }
-    return parseInt(p, 10);
+    const parsed = parseInt(p, 10);
+    if (parsed < 0 || parsed > 255) {
+      throw new Error(`Invalid IPv4 address: part "${p}" is not a valid octet.`);
+    }
+    return parsed;
   });
   if (parts.length !== 4) {
     throw new Error("Invalid IPv4 address");
