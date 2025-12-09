@@ -592,10 +592,7 @@ export class SUPPORTED_ATTRIBUTES extends ConfigurationAttribute {
   }
 
   public static serializeJSON(json: Record<string, any>): Buffer {
-    const values = json.values.map((value: number) => {
-      return value;
-    });
-    return new SUPPORTED_ATTRIBUTES(values).serialize();
+    return new SUPPORTED_ATTRIBUTES(json.values).serialize();
   }
 
   public toJSON(): Record<string, any> {
