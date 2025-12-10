@@ -98,7 +98,7 @@ export function parseIPv6AddressString(addressString: string): Buffer {
 }
 
 export function formatIPv6AddressBuffer(addressBuffer: Buffer): string {
-  if (addressBuffer.length == 0) {
+  if (addressBuffer.length === 0) {
     return '';
   }
   if (addressBuffer.length !== 16) {
