@@ -1802,7 +1802,6 @@ export class PayloadTS extends Payload {
 export class PayloadTSi extends PayloadTS {
   constructor(
     public nextPayload: payloadType,
-    public numTs: number,
     public tsList: TrafficSelector[],
     public critical: boolean = false,
     public length: number = 0
