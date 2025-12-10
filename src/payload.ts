@@ -1675,16 +1675,16 @@ export class PayloadVENDOR extends Payload {
 export class PayloadTS extends Payload {
   constructor(
     public nextPayload: payloadType,
-    public numTs: number,
+    public tsType: payloadType,
     public tsList: TrafficSelector[],
     public critical: boolean = false,
     public length: number = 0
   ) {
     super(
-      payloadType.NONE,
+      tsType,
       nextPayload,
       critical,
-      length > 0 ? length : 5 + tsList.reduce((acc, ts) => acc + ts.length, 0)
+      length > 0 ? length : 0
     );
   }
 
@@ -1711,7 +1711,7 @@ export class PayloadTS extends Payload {
 
     return new PayloadTS(
       genericPayload.nextPayload,
-      numTs,
+      genericPayload.type,
       tsList,
       genericPayload.critical,
       genericPayload.length
@@ -1726,6 +1726,7 @@ export class PayloadTS extends Payload {
    * @returns {Buffer}
    */
   public static serializeJSON(json: Record<string, any>): Buffer {
+    // const type = json.type; // TODO include the type in the JSON, as it is discriminating
     const buffer = Buffer.alloc(json.length);
     const genericPayload = Payload.serializeJSON(json);
     genericPayload.copy(buffer);
@@ -1753,15 +1754,18 @@ export class PayloadTS extends Payload {
    */
   public serialize(): Buffer {
     // Encode deep first to calculate length
+    if (this.tsList.length > 255) {
+      throw new Error(`Too many traffic selectors ${this.tsList.length}`);
+    }
     const tsListBuffer = this.tsList.map((ts) => ts.serialize());
     const tsBuffer = Buffer.concat(tsListBuffer);
 
     // Fix the length
-    this.length = 5 + tsBuffer.length;
+    this.length = 8 + tsBuffer.length;
 
     const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
-    buffer.writeUInt8(this.numTs, 4);
+    buffer.writeUInt8(this.tsList.length, 4);
     // No need to blank 3 reserved bytes, Buffer.alloc does that
     tsBuffer.copy(buffer, 8);
 
@@ -1775,7 +1779,6 @@ export class PayloadTS extends Payload {
    */
   public toJSON(): Record<string, any> {
     const json = super.genToJSON();
-    json.numTs = this.numTs;
     json.tsList = this.tsList.map((ts) => ts.toJSON());
     return json;
   }
@@ -1787,7 +1790,7 @@ export class PayloadTS extends Payload {
    */
   public toString(): string {
     const genericString = super.genToString();
-    return `${genericString}\nnumTs: ${this.numTs}\ntsList: ${this.tsList.map((ts) => ts.toString()).join(", ")}`;
+    return `${genericString}\ntsList: ${this.tsList.map((ts) => ts.toString()).join(", ")}`;
   }
 }
 
@@ -1806,10 +1809,10 @@ export class PayloadTSi extends PayloadTS {
   ) {
     super(
       nextPayload,
-      numTs,
+      payloadType.TSi,
       tsList,
       critical,
-      length > 0 ? length : 5 + tsList.reduce((acc, ts) => acc + ts.length, 0)
+      length > 0 ? length : 0
     );
     this.type = payloadType.TSi;
   }
@@ -1823,17 +1826,16 @@ export class PayloadTSi extends PayloadTS {
 export class PayloadTSr extends PayloadTS {
   constructor(
     public nextPayload: payloadType,
-    public numTs: number,
     public tsList: TrafficSelector[],
     public critical: boolean = false,
     public length: number = 0
   ) {
     super(
       nextPayload,
-      numTs,
+      payloadType.TSr,
       tsList,
       critical,
-      length > 0 ? length : 5 + tsList.reduce((acc, ts) => acc + ts.length, 0)
+      length > 0 ? length : 0
     );
     this.type = payloadType.TSr;
   }
