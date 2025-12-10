@@ -155,7 +155,7 @@ export function parseIPAddressString(addressString: string): Buffer {
 }
 
 export function formatIPAddressBuffer(addressBuffer: Buffer): string {
-  if (addressBuffer.length == 0) {
+  if (addressBuffer.length === 0) {
     return '';
   }
   if (addressBuffer.length == 4) {
