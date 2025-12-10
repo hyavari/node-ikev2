@@ -1,7 +1,7 @@
 
 
 export function parseIPv4AddressString(addressString: string): Buffer {
-  if (addressString.length == 0) {
+  if (addressString.length === 0) {
     return Buffer.alloc(0);
   }
   const buffer = Buffer.alloc(4);
