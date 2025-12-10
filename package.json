@@ -1,7 +1,7 @@
 {
   "name": "node-ikev2",
   "title": "Node-IKEV2",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "IKEv2 parser and serializer for Node.js",
   "main": "./lib/src/index.js",
   "types": "./lib/src/index.d.ts",
