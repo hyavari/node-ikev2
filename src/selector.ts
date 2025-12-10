@@ -76,7 +76,7 @@ export class TrafficSelector {
       const protocolId = buffer.readUInt8(1);
       const length = buffer.readUInt16BE(2);
 
-      if (length != expectedLength) {
+      if (length !== expectedLength) {
         throw new Error("Invalid traffic selector length");
       }
       const startPort = buffer.readUInt16BE(4);
@@ -123,10 +123,10 @@ export class TrafficSelector {
     var ipLength: number;
     const startAddress = parseIPAddressString(json.startAddress);
     const endAddress = parseIPAddressString(json.endAddress);
-    if (startAddress.length == 4 && endAddress.length == 4) {
+    if (startAddress.length === 4 && endAddress.length === 4) {
       length = 16;
       ipLength = 4;
-    } else if (startAddress.length == 16 && endAddress.length == 16) {
+    } else if (startAddress.length === 16 && endAddress.length === 16) {
       length = 40;
       ipLength = 16;
     } else {

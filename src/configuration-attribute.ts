@@ -197,7 +197,7 @@ export class ConfigurationAttribute {
     const attributes: ConfigurationAttribute[] = [];
     let offset = 0;
 
-    while (offset + 4 < buffer.length) {
+    while (offset + 4 <= buffer.length) {
       // const attributeType = buffer.readUInt16BE(offset) & 0x7fff;
       const attributeLength = buffer.readUInt16BE(offset + 2);
       const attributeBuffer = buffer.subarray(offset, offset + 4 + attributeLength);
@@ -447,7 +447,7 @@ export class INTERNAL_IP6_ADDRESS extends ConfigurationAttribute {
     if (address.length === 0) {
       value = address;
     } else {
-      if (prefixLength <= 0 || prefixLength > 128) {
+      if (prefixLength < 0 || prefixLength > 128) {
         throw new Error("Invalid prefix length for INTERNAL_IP6_ADDRESS");
       }
       value = Buffer.alloc(17);

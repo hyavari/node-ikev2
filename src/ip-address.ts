@@ -27,7 +27,7 @@ export function parseIPv4AddressString(addressString: string): Buffer {
 }
 
 export function formatIPv4AddressBuffer(buffer: Buffer): string {
-  if (buffer.length == 0) {
+  if (buffer.length === 0) {
     return '';
   }
   if (buffer.length !== 4) {
@@ -145,7 +145,7 @@ export function formatIPv6AddressBuffer(addressBuffer: Buffer): string {
 
 
 export function parseIPAddressString(addressString: string): Buffer {
-  if (addressString.length == 0) {
+  if (addressString.length === 0) {
     return Buffer.alloc(0);
   }
   if (addressString.includes(":")) {
@@ -158,10 +158,10 @@ export function formatIPAddressBuffer(addressBuffer: Buffer): string {
   if (addressBuffer.length === 0) {
     return '';
   }
-  if (addressBuffer.length == 4) {
+  if (addressBuffer.length === 4) {
     return formatIPv4AddressBuffer(addressBuffer);
   }
-  if (addressBuffer.length == 16) {
+  if (addressBuffer.length === 16) {
     return formatIPv6AddressBuffer(addressBuffer);
   }
   throw new Error(`Invalid buffer length for IP address ${addressBuffer}: expected 4 or 16 bytes.`);
