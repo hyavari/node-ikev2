@@ -5,6 +5,8 @@ export * from "./proposal";
 export * from "./selector";
 export * from "./transform";
 export * from "./message";
+export * from "./configuration-attribute";
+export * from "./ip-address";
 
 import * as ikev2 from "./message";
 export { ikev2 };
