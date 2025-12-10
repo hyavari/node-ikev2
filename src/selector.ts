@@ -94,7 +94,7 @@ export class TrafficSelector {
           endAddress = buffer.subarray(24, 40);
           break;
         default:
-          throw new Error("Invalid traffic selector length");
+          throw new Error("Invalid traffic selector type");
       }
 
       return new TrafficSelector(
