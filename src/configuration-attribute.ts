@@ -194,7 +194,7 @@ export class ConfigurationAttribute {
     const attributes: ConfigurationAttribute[] = [];
     let offset = 0;
 
-    while (offset < buffer.length) {
+    while (offset + 4 < buffer.length) {
       // const attributeType = buffer.readUInt16BE(offset) & 0x7fff;
       const attributeLength = buffer.readUInt16BE(offset + 2);
       const attributeBuffer = buffer.subarray(offset, offset + 4 + attributeLength);
@@ -235,15 +235,18 @@ export class ConfigurationAttribute {
 export class INTERNAL_IP4_ADDRESS extends ConfigurationAttribute {
 
   constructor(public address: Buffer) {
-    if (address.length !== 4) {
+    if (address.length !== 0 && address.length !== 4) {
       throw new Error("Invalid value length for INTERNAL_IP4_ADDRESS");
     }
     super(configurationAttributeType.INTERNAL_IP4_ADDRESS, address);
   }
 
   public static parse(buffer: Buffer): INTERNAL_IP4_ADDRESS {
-    if (buffer.length !== 4) {
+    if (buffer.length !== 0 && buffer.length !== 4) {
       throw new Error("Invalid value length for INTERNAL_IP4_ADDRESS");
+    }
+    if (buffer.length === 0) {
+      return new INTERNAL_IP4_ADDRESS(Buffer.alloc(0));
     }
     return new INTERNAL_IP4_ADDRESS(buffer.subarray(0, 4));
   }
@@ -267,15 +270,18 @@ export class INTERNAL_IP4_ADDRESS extends ConfigurationAttribute {
 
 export class INTERNAL_IP4_NETMASK extends ConfigurationAttribute {
   constructor(public netmask: Buffer) {
-    if (netmask.length !== 4) {
+    if (netmask.length !== 0 && netmask.length !== 4) {
       throw new Error("Invalid value length for INTERNAL_IP4_NETMASK");
     }
     super(configurationAttributeType.INTERNAL_IP4_NETMASK, netmask);
   }
 
   public static parse(buffer: Buffer): INTERNAL_IP4_NETMASK {
-    if (buffer.length !== 4) {
+    if (buffer.length !== 0 && buffer.length !== 4) {
       throw new Error("Invalid value length for INTERNAL_IP4_NETMASK");
+    }
+    if (buffer.length === 0) {
+      return new INTERNAL_IP4_NETMASK(Buffer.alloc(0));
     }
     return new INTERNAL_IP4_NETMASK(buffer.subarray(0, 4));
   }
@@ -299,15 +305,18 @@ export class INTERNAL_IP4_NETMASK extends ConfigurationAttribute {
 
 export class INTERNAL_IP4_DNS extends ConfigurationAttribute {
   constructor(public dns: Buffer) {
-    if (dns.length !== 4) {
+    if (dns.length !== 0 && dns.length !== 4) {
       throw new Error("Invalid value length for INTERNAL_IP4_DNS");
     }
     super(configurationAttributeType.INTERNAL_IP4_DNS, dns);
   }
 
   public static parse(buffer: Buffer): INTERNAL_IP4_DNS {
-    if (buffer.length !== 4) {
+    if (buffer.length !== 0 && buffer.length !== 4) {
       throw new Error("Invalid value length for INTERNAL_IP4_DNS");
+    }
+    if (buffer.length === 0) {
+      return new INTERNAL_IP4_DNS(Buffer.alloc(0));
     }
     return new INTERNAL_IP4_DNS(buffer.subarray(0, 4));
   }
@@ -331,15 +340,18 @@ export class INTERNAL_IP4_DNS extends ConfigurationAttribute {
 
 export class INTERNAL_IP4_NBNS extends ConfigurationAttribute {
   constructor(public nbns: Buffer) {
-    if (nbns.length !== 4) {
+    if (nbns.length !== 0 && nbns.length !== 4) {
       throw new Error("Invalid value length for INTERNAL_IP4_NBNS");
     }
     super(configurationAttributeType.INTERNAL_IP4_NBNS, nbns);
   }
 
   public static parse(buffer: Buffer): INTERNAL_IP4_NBNS {
-    if (buffer.length !== 4) {
+    if (buffer.length !== 0 && buffer.length !== 4) {
       throw new Error("Invalid value length for INTERNAL_IP4_NBNS");
+    }
+    if (buffer.length === 0) {
+      return new INTERNAL_IP4_NBNS(Buffer.alloc(0));
     }
     return new INTERNAL_IP4_NBNS(buffer.subarray(0, 4));
   }
@@ -363,15 +375,18 @@ export class INTERNAL_IP4_NBNS extends ConfigurationAttribute {
 
 export class INTERNAL_IP4_DHCP extends ConfigurationAttribute {
   constructor(public dhcp: Buffer) {
-    if (dhcp.length !== 4) {
+    if (dhcp.length !== 0 && dhcp.length !== 4) {
       throw new Error("Invalid value length for INTERNAL_IP4_DHCP");
     }
     super(configurationAttributeType.INTERNAL_IP4_DHCP, dhcp);
   }
 
   public static parse(buffer: Buffer): INTERNAL_IP4_DHCP {
-    if (buffer.length !== 4) {
+    if (buffer.length !== 0 && buffer.length !== 4) {
       throw new Error("Invalid value length for INTERNAL_IP4_DHCP");
+    }
+    if (buffer.length === 0) {
+      return new INTERNAL_IP4_DHCP(Buffer.alloc(0));
     }
     return new INTERNAL_IP4_DHCP(buffer.subarray(0, 4));
   }
@@ -422,21 +437,29 @@ export class APPLICATION_VERSION extends ConfigurationAttribute {
 
 export class INTERNAL_IP6_ADDRESS extends ConfigurationAttribute {
   constructor(public address: Buffer, public prefixLength: number) {
-    if (address.length !== 16) {
+    if (address.length !== 16 && address.length !== 0) {
       throw new Error("Invalid value length for INTERNAL_IP6_ADDRESS");
     }
-    if (prefixLength < 0 || prefixLength > 128) {
-      throw new Error("Invalid prefix length for INTERNAL_IP6_ADDRESS");
+    var value: Buffer;
+    if (address.length === 0) {
+      value = address;
+    } else {
+      if (prefixLength <= 0 || prefixLength > 128) {
+        throw new Error("Invalid prefix length for INTERNAL_IP6_ADDRESS");
+      }
+      value = Buffer.alloc(17);
+      address.copy(value, 0);
+      value.writeUInt8(prefixLength, 16);
     }
-    let value = Buffer.alloc(17);
-    address.copy(value, 0);
-    value.writeUInt8(prefixLength, 16);
     super(configurationAttributeType.INTERNAL_IP6_ADDRESS, value);
   }
 
   public static parse(buffer: Buffer): INTERNAL_IP6_ADDRESS {
-    if (buffer.length !== 17) {
+    if (buffer.length !== 17 && buffer.length !== 0) {
       throw new Error("Invalid value length for INTERNAL_IP6_ADDRESS");
+    }
+    if (buffer.length === 0) {
+      return new INTERNAL_IP6_ADDRESS(Buffer.alloc(0), 0);
     }
     return new INTERNAL_IP6_ADDRESS(buffer.subarray(0, 16), buffer.readUInt8(16));
   }
@@ -462,15 +485,18 @@ export class INTERNAL_IP6_ADDRESS extends ConfigurationAttribute {
 
 export class INTERNAL_IP6_DNS extends ConfigurationAttribute {
   constructor(public dns: Buffer) {
-    if (dns.length !== 16) {
+    if (dns.length !== 16 && dns.length !== 0) {
       throw new Error("Invalid value length for INTERNAL_IP6_DNS");
     }
     super(configurationAttributeType.INTERNAL_IP6_DNS, dns);
   }
 
   public static parse(buffer: Buffer): INTERNAL_IP6_DNS {
-    if (buffer.length !== 16) {
+    if (buffer.length !== 16 && buffer.length !== 0) {
       throw new Error("Invalid value length for INTERNAL_IP6_DNS");
+    }
+    if (buffer.length === 0) {
+      return new INTERNAL_IP6_DNS(Buffer.alloc(0));
     }
     return new INTERNAL_IP6_DNS(buffer.subarray(0, 16));
   }
@@ -494,15 +520,18 @@ export class INTERNAL_IP6_DNS extends ConfigurationAttribute {
 
 export class INTERNAL_IP6_DHCP extends ConfigurationAttribute {
   constructor(public dhcp: Buffer) {
-    if (dhcp.length !== 16) {
+    if (dhcp.length !== 16 && dhcp.length !== 0) {
       throw new Error("Invalid value length for INTERNAL_IP6_DHCP");
     }
     super(configurationAttributeType.INTERNAL_IP6_DHCP, dhcp);
   }
 
   public static parse(buffer: Buffer): INTERNAL_IP6_DHCP {
-    if (buffer.length !== 16) {
+    if (buffer.length !== 16 && buffer.length !== 0) {
       throw new Error("Invalid value length for INTERNAL_IP6_DHCP");
+    }
+    if (buffer.length === 0) {
+      return new INTERNAL_IP6_DHCP(Buffer.alloc(0));
     }
     return new INTERNAL_IP6_DHCP(buffer.subarray(0, 16));
   }
@@ -526,21 +555,24 @@ export class INTERNAL_IP6_DHCP extends ConfigurationAttribute {
 
 export class INTERNAL_IP4_SUBNET extends ConfigurationAttribute {
   constructor(public address: Buffer, public netmask: Buffer) {
-    if (address.length !== 4) {
+    if (!(
+      (address.length == 4 && netmask.length == 4) ||
+      (address.length == 0 && netmask.length == 0)
+    )) {
       throw new Error("Invalid value length for INTERNAL_IP4_SUBNET");
     }
-    if (netmask.length !== 4) {
-      throw new Error("Invalid value length for INTERNAL_IP4_SUBNET");
-    }
-    let value = Buffer.alloc(8);
+    let value = Buffer.alloc(address.length + netmask.length);
     address.copy(value, 0);
-    netmask.copy(value, 4);
+    netmask.copy(value, address.length);
     super(configurationAttributeType.INTERNAL_IP4_SUBNET, value);
   }
 
   public static parse(buffer: Buffer): INTERNAL_IP4_SUBNET {
-    if (buffer.length !== 8) {
+    if (buffer.length !== 8 && buffer.length != 0) {
       throw new Error("Invalid value length for INTERNAL_IP4_SUBNET");
+    }
+    if (buffer.length === 0) {
+      return new INTERNAL_IP4_SUBNET(Buffer.alloc(0), Buffer.alloc(0));
     }
     return new INTERNAL_IP4_SUBNET(buffer.subarray(0, 4), buffer.subarray(4, 8));
   }
@@ -602,15 +634,20 @@ export class SUPPORTED_ATTRIBUTES extends ConfigurationAttribute {
 
 export class INTERNAL_IP6_SUBNET extends ConfigurationAttribute {
   constructor(public address: Buffer, public prefixLength: number) {
-    if (address.length !== 16) {
+    if (address.length !== 16 && address.length !== 0) {
       throw new Error("Invalid value length for INTERNAL_IP6_SUBNET");
     }
-    if (prefixLength < 0 || prefixLength > 128) {
-      throw new Error("Invalid prefix length for INTERNAL_IP6_SUBNET");
+    var value: Buffer;
+    if (address.length === 0) {
+      value = address;
+    } else {
+      if (prefixLength < 0 || prefixLength > 128) {
+        throw new Error("Invalid prefix length for INTERNAL_IP6_SUBNET");
+      }
+      value = Buffer.alloc(17);
+      address.copy(value, 0);
+      value.writeUInt8(prefixLength, 16);
     }
-    let value = Buffer.alloc(17);
-    address.copy(value, 0);
-    value.writeUInt8(prefixLength, 16);
     super(configurationAttributeType.INTERNAL_IP6_SUBNET, value);
   }
 
@@ -642,15 +679,18 @@ export class INTERNAL_IP6_SUBNET extends ConfigurationAttribute {
 
 export class P_CSCF_IP4_ADDRESS extends ConfigurationAttribute {
   constructor(public address: Buffer) {
-    if (address.length !== 4) {
+    if (address.length !== 4 && address.length !== 0) {
       throw new Error("Invalid value length for P_CSCF_IP4_ADDRESS");
     }
     super(configurationAttributeType.P_CSCF_IP4_ADDRESS, address);
   }
 
   public static parse(buffer: Buffer): P_CSCF_IP4_ADDRESS {
-    if (buffer.length !== 4) {
+    if (buffer.length !== 4 && buffer.length !== 0) {
       throw new Error("Invalid value length for P_CSCF_IP4_ADDRESS");
+    }
+    if (buffer.length === 0) {
+      return new P_CSCF_IP4_ADDRESS(Buffer.alloc(0));
     }
     return new P_CSCF_IP4_ADDRESS(buffer.subarray(0, 4));
   }
@@ -674,15 +714,18 @@ export class P_CSCF_IP4_ADDRESS extends ConfigurationAttribute {
 
 export class P_CSCF_IP6_ADDRESS extends ConfigurationAttribute {
   constructor(public address: Buffer) {
-    if (address.length !== 16) {
+    if (address.length !== 16 && address.length !== 0) {
       throw new Error("Invalid value length for P_CSCF_IP6_ADDRESS");
     }
     super(configurationAttributeType.P_CSCF_IP6_ADDRESS, address);
   }
 
   public static parse(buffer: Buffer): P_CSCF_IP6_ADDRESS {
-    if (buffer.length !== 16) {
+    if (buffer.length !== 16 && buffer.length !== 0) {
       throw new Error("Invalid value length for P_CSCF_IP6_ADDRESS");
+    }
+    if (buffer.length === 0) {
+      return new P_CSCF_IP6_ADDRESS(Buffer.alloc(0));
     }
     return new P_CSCF_IP6_ADDRESS(buffer.subarray(0, 16));
   }
@@ -704,7 +747,7 @@ export class P_CSCF_IP6_ADDRESS extends ConfigurationAttribute {
   }
 }
 
-export class CP_Attributes {
+export class CPAttributes {
   public INTERNAL_IP4_ADDRESS: INTERNAL_IP4_ADDRESS[];
   public INTERNAL_IP4_NETMASK: INTERNAL_IP4_NETMASK | undefined;
   public INTERNAL_IP4_DNS: INTERNAL_IP4_DNS[];
@@ -739,57 +782,59 @@ export class CP_Attributes {
     this.OtherAttributes = [];
   }
 
-  public parse(buffer: Buffer): void {
+  public static parse(buffer: Buffer): CPAttributes {
+    const cpAttributes = new CPAttributes();
     let attributes = ConfigurationAttribute.parseConfigurationAttributes(buffer);
     for (let attribute of attributes) {
       switch (attribute.type) {
         case configurationAttributeType.INTERNAL_IP4_ADDRESS:
-          this.INTERNAL_IP4_ADDRESS.push(INTERNAL_IP4_ADDRESS.parse(attribute.value));
+          cpAttributes.INTERNAL_IP4_ADDRESS.push(INTERNAL_IP4_ADDRESS.parse(attribute.value));
           break;
         case configurationAttributeType.INTERNAL_IP4_NETMASK:
-          this.INTERNAL_IP4_NETMASK = INTERNAL_IP4_NETMASK.parse(attribute.value);
+          cpAttributes.INTERNAL_IP4_NETMASK = INTERNAL_IP4_NETMASK.parse(attribute.value);
           break;
         case configurationAttributeType.INTERNAL_IP4_DNS:
-          this.INTERNAL_IP4_DNS.push(INTERNAL_IP4_DNS.parse(attribute.value));
+          cpAttributes.INTERNAL_IP4_DNS.push(INTERNAL_IP4_DNS.parse(attribute.value));
           break;
         case configurationAttributeType.INTERNAL_IP4_NBNS:
-          this.INTERNAL_IP4_NBNS.push(INTERNAL_IP4_NBNS.parse(attribute.value));
+          cpAttributes.INTERNAL_IP4_NBNS.push(INTERNAL_IP4_NBNS.parse(attribute.value));
           break;
         case configurationAttributeType.INTERNAL_IP4_DHCP:
-          this.INTERNAL_IP4_DHCP.push(INTERNAL_IP4_DHCP.parse(attribute.value));
+          cpAttributes.INTERNAL_IP4_DHCP.push(INTERNAL_IP4_DHCP.parse(attribute.value));
           break;
         case configurationAttributeType.APPLICATION_VERSION:
-          this.APPLICATION_VERSION = APPLICATION_VERSION.parse(attribute.value);
+          cpAttributes.APPLICATION_VERSION = APPLICATION_VERSION.parse(attribute.value);
           break;
         case configurationAttributeType.INTERNAL_IP6_ADDRESS:
-          this.INTERNAL_IP6_ADDRESS.push(INTERNAL_IP6_ADDRESS.parse(attribute.value));
+          cpAttributes.INTERNAL_IP6_ADDRESS.push(INTERNAL_IP6_ADDRESS.parse(attribute.value));
           break;
         case configurationAttributeType.INTERNAL_IP6_DNS:
-          this.INTERNAL_IP6_DNS.push(INTERNAL_IP6_DNS.parse(attribute.value));
+          cpAttributes.INTERNAL_IP6_DNS.push(INTERNAL_IP6_DNS.parse(attribute.value));
           break;
         case configurationAttributeType.INTERNAL_IP6_DHCP:
-          this.INTERNAL_IP6_DHCP.push(INTERNAL_IP6_DHCP.parse(attribute.value));
+          cpAttributes.INTERNAL_IP6_DHCP.push(INTERNAL_IP6_DHCP.parse(attribute.value));
           break;
         case configurationAttributeType.INTERNAL_IP4_SUBNET:
-          this.INTERNAL_IP4_SUBNET.push(INTERNAL_IP4_SUBNET.parse(attribute.value));
+          cpAttributes.INTERNAL_IP4_SUBNET.push(INTERNAL_IP4_SUBNET.parse(attribute.value));
           break;
         case configurationAttributeType.SUPPORTED_ATTRIBUTES:
-          this.SUPPORTED_ATTRIBUTES = SUPPORTED_ATTRIBUTES.parse(attribute.value);
+          cpAttributes.SUPPORTED_ATTRIBUTES = SUPPORTED_ATTRIBUTES.parse(attribute.value);
           break;
         case configurationAttributeType.INTERNAL_IP6_SUBNET:
-          this.INTERNAL_IP6_SUBNET.push(INTERNAL_IP6_SUBNET.parse(attribute.value));
+          cpAttributes.INTERNAL_IP6_SUBNET.push(INTERNAL_IP6_SUBNET.parse(attribute.value));
           break;
         case configurationAttributeType.P_CSCF_IP4_ADDRESS:
-          this.P_CSCF_IP4_ADDRESS.push(P_CSCF_IP4_ADDRESS.parse(attribute.value));
+          cpAttributes.P_CSCF_IP4_ADDRESS.push(P_CSCF_IP4_ADDRESS.parse(attribute.value));
           break;
         case configurationAttributeType.P_CSCF_IP6_ADDRESS:
-          this.P_CSCF_IP6_ADDRESS.push(P_CSCF_IP6_ADDRESS.parse(attribute.value));
+          cpAttributes.P_CSCF_IP6_ADDRESS.push(P_CSCF_IP6_ADDRESS.parse(attribute.value));
           break;
         default:
-          this.OtherAttributes.push(attribute);
+          cpAttributes.OtherAttributes.push(attribute);
           break;
       }
     }
+    return cpAttributes;
   }
 
   /**
@@ -885,20 +930,23 @@ export class CP_Attributes {
 }
 
 export function parseIPv4AddressString(addressString: string): Buffer {
+  if (addressString.length == 0) {
+    return Buffer.alloc(0);
+  }
   const buffer = Buffer.alloc(4);
   const stringParts = addressString.split('.');
   const parts = stringParts.map(p => {
     if (!/^\d+$/.test(p)) {
-      throw new Error(`Invalid IPv4 address: part "${p}" contains non-digit characters.`);
+      throw new Error(`Invalid IPv4 address ${addressString}: part "${p}" contains non-digit characters.`);
     }
     const parsed = parseInt(p, 10);
     if (parsed < 0 || parsed > 255) {
-      throw new Error(`Invalid IPv4 address: part "${p}" is not a valid octet.`);
+      throw new Error(`Invalid IPv4 address ${addressString}: part "${p}" is not a valid octet.`);
     }
     return parsed;
   });
   if (parts.length !== 4) {
-    throw new Error("Invalid IPv4 address");
+    throw new Error(`Invalid IPv4 address ${addressString}`);
   }
   buffer.writeUInt8(parts[0], 0);
   buffer.writeUInt8(parts[1], 1);
@@ -908,8 +956,11 @@ export function parseIPv4AddressString(addressString: string): Buffer {
 }
 
 export function formatIPv4AddressBuffer(buffer: Buffer): string {
+  if (buffer.length == 0) {
+    return '';
+  }
   if (buffer.length !== 4) {
-    throw new Error("Invalid IPv4 address");
+    throw new Error(`Invalid IPv4 address ${buffer}`);
   }
   const parts = [
     buffer.readUInt8(0),
@@ -921,6 +972,9 @@ export function formatIPv4AddressBuffer(buffer: Buffer): string {
 }
 
 export function parseIPv6AddressString(addressString: string): Buffer {
+  if (addressString.length == 0) {
+    return Buffer.alloc(0);
+  }
   const buffer = Buffer.alloc(16);
   let parts: string[];
   let zeroFillCount = 0;
@@ -929,7 +983,7 @@ export function parseIPv6AddressString(addressString: string): Buffer {
   if (addressString.includes('::')) {
     const partsSplitted = addressString.split('::');
     if (partsSplitted.length > 2) {
-      throw new Error("Invalid IPv6 address: multiple '::' sequences.");
+      throw new Error(`Invalid IPv6 address ${addressString}: multiple '::' sequences.`);
     }
     const [beforeDoubleColon, afterDoubleColon] = partsSplitted;
 
@@ -939,7 +993,7 @@ export function parseIPv6AddressString(addressString: string): Buffer {
     // Calculate how many zero groups are needed for '::'
     zeroFillCount = 8 - (beforeParts.length + afterParts.length);
     if (zeroFillCount < 0) {
-      throw new Error("Invalid IPv6 address: too many parts for '::' expansion.");
+      throw new Error(`Invalid IPv6 address ${addressString}: too many parts for '::' expansion.`);
     }
 
     parts = [...beforeParts];
@@ -953,17 +1007,17 @@ export function parseIPv6AddressString(addressString: string): Buffer {
   }
 
   if (parts.length !== 8) {
-    throw new Error(`Invalid IPv6 address: expected 8 parts, got ${parts.length}.`);
+    throw new Error(`Invalid IPv6 address ${addressString}: expected 8 parts, got ${parts.length}.`);
   }
 
   for (let i = 0; i < 8; i++) {
     const part = parts[i];
     if (part.length > 4) {
-      throw new Error(`Invalid IPv6 address part length: ${part}`);
+      throw new Error(`Invalid IPv6 address ${addressString}: part length: ${part}`);
     }
     const value = parseInt(part, 16);
     if (isNaN(value) || value < 0 || value > 0xFFFF) {
-      throw new Error(`Invalid IPv6 address part: ${part}`);
+      throw new Error(`Invalid IPv6 address ${addressString}: part: ${part}`);
     }
     buffer.writeUInt16BE(value, currentBufferIndex);
     currentBufferIndex += 2;
@@ -973,8 +1027,11 @@ export function parseIPv6AddressString(addressString: string): Buffer {
 }
 
 export function formatIPv6AddressBuffer(addressBuffer: Buffer): string {
+  if (addressBuffer.length == 0) {
+    return '';
+  }
   if (addressBuffer.length !== 16) {
-    throw new Error("Invalid buffer length for IPv6 address; expected 16 bytes.");
+    throw new Error(`Invalid buffer length for IPv6 address ${addressBuffer}: expected 16 bytes.`);
   }
 
   const parts = Array.from({ length: 8 }, (_, i) =>

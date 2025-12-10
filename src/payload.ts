@@ -2126,7 +2126,7 @@ export class PayloadCP extends Payload {
   public static parse(buffer: Buffer): PayloadCP {
     const genericPayload = Payload.parse(buffer);
     const cfgType = buffer.readUInt8(4);
-    const cfgData = buffer.subarray(5, genericPayload.length);
+    const cfgData = buffer.subarray(8, genericPayload.length);
 
     return new PayloadCP(
       genericPayload.nextPayload,
@@ -2149,10 +2149,7 @@ export class PayloadCP extends Payload {
     const genericPayload = Payload.serializeJSON(json);
     genericPayload.copy(buffer);
     buffer.writeUInt8(json.cfgType, 4);
-    // Write 3-byte reserved field as zeros in big-endian order
-    buffer.writeUInt8(0, 5);
-    buffer.writeUInt8(0, 6);
-    buffer.writeUInt8(0, 7);
+    // 3-bytes reserved field as zeros in big-endian order
     Buffer.from(json.cfgData, "hex").copy(buffer, 8);
     return buffer;
   }
@@ -2165,7 +2162,6 @@ export class PayloadCP extends Payload {
   public serialize(): Buffer {
     // Fix the length
     this.length = 8 + this.cfgData.length;
-
 
     const buffer = Buffer.alloc(this.length);
     super.serialize().copy(buffer);
