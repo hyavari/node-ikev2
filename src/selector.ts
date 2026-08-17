@@ -62,7 +62,7 @@ export class TrafficSelector {
   public static parse(buffer: Buffer): TrafficSelector {
     try {
       const type = buffer.readUInt8(0);
-      var expectedLength: number;
+      let expectedLength: number;
       switch (type) {
         case TrafficSelectorType.TS_IPV4_ADDR_RANGE:
           expectedLength = 16;
@@ -81,8 +81,8 @@ export class TrafficSelector {
       }
       const startPort = buffer.readUInt16BE(4);
       const endPort = buffer.readUInt16BE(6);
-      var startAddress: Buffer;
-      var endAddress: Buffer;
+      let startAddress: Buffer;
+      let endAddress: Buffer;
 
       switch (type) {
         case TrafficSelectorType.TS_IPV4_ADDR_RANGE:
@@ -119,8 +119,8 @@ export class TrafficSelector {
    * @returns {Buffer}
    */
   public static serializeJSON(json: Record<string, any>): Buffer {
-    var length: number;
-    var ipLength: number;
+    let length: number;
+    let ipLength: number;
     const startAddress = parseIPAddressString(json.startAddress);
     const endAddress = parseIPAddressString(json.endAddress);
     if (startAddress.length === 4 && endAddress.length === 4) {
@@ -150,7 +150,7 @@ export class TrafficSelector {
    * @returns {Buffer}
    */
   public serialize(): Buffer {
-    var ipLength: number;
+    let ipLength: number;
     switch (this.type) {
       case TrafficSelectorType.TS_IPV4_ADDR_RANGE:
         if (this.startAddress.length != 4 || this.endAddress.length != 4) {

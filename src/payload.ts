@@ -258,7 +258,7 @@ export class PayloadSA extends Payload {
     public nextPayload: payloadType,
     public proposals: Proposal[],
     public critical: boolean = false,
-    public length: number = 0
+    length: number = 0
   ) {
     super(
       payloadType.SA,
@@ -420,7 +420,7 @@ export class PayloadKE extends Payload {
     public dhGroup: number,
     public keyData: Buffer,
     public critical: boolean = false,
-    public length: number = 0
+    length: number = 0
   ) {
     super(
       payloadType.KE,
@@ -595,13 +595,13 @@ export class PayloadID extends Payload {
     public idType: number,
     public idData: Buffer,
     public critical: boolean = false,
-    public length: number = 0
+    length: number = 0
   ) {
     super(
       payloadType.NONE,
       nextPayload,
       critical,
-      length > 0 ? length : 5 + idData.length
+      length > 0 ? length : 8 + idData.length
     );
   }
 
@@ -759,14 +759,14 @@ export class PayloadIDi extends PayloadID {
     public idType: number,
     public idData: Buffer,
     public critical: boolean = false,
-    public length: number = 0
+    length: number = 0
   ) {
     super(
       nextPayload,
       idType,
       idData,
       critical,
-      length > 0 ? length : 5 + idData.length
+      length > 0 ? length : 8 + idData.length
     );
     this.type = payloadType.IDi;
   }
@@ -782,15 +782,15 @@ export class PayloadIDr extends PayloadID {
     public nextPayload: payloadType,
     public idType: number,
     public idData: Buffer,
-    public critical: boolean,
-    public length: number
+    public critical: boolean = false,
+    length: number = 0
   ) {
     super(
       nextPayload,
       idType,
       idData,
       critical,
-      length > 0 ? length : 5 + idData.length
+      length > 0 ? length : 8 + idData.length
     );
     this.type = payloadType.IDr;
   }
@@ -829,7 +829,7 @@ export class PayloadCERT extends Payload {
     public certEncoding: number,
     public certData: Buffer,
     public critical: boolean = false,
-    public length: number = 0
+    length: number = 0
   ) {
     super(
       payloadType.CERT,
@@ -941,7 +941,7 @@ export class PayloadCERTREQ extends Payload {
     public certEncoding: number,
     public certAuthority: Buffer,
     public critical: boolean = false,
-    public length: number = 0
+    length: number = 0
   ) {
     super(
       payloadType.CERTREQ,
@@ -1038,13 +1038,13 @@ export class PayloadAUTH extends Payload {
     public authMethod: number,
     public authData: Buffer,
     public critical: boolean = false,
-    public length: number = 0
+    length: number = 0
   ) {
     super(
       payloadType.AUTH,
       nextPayload,
       critical,
-      length > 0 ? length : 5 + authData.length
+      length > 0 ? length : 8 + authData.length
     );
   }
 
@@ -1140,7 +1140,7 @@ export class PayloadNONCE extends Payload {
     public nextPayload: payloadType,
     public nonceData: Buffer,
     public critical: boolean = false,
-    public length: number = 0
+    length: number = 0
   ) {
     super(
       payloadType.NONCE,
@@ -1336,7 +1336,7 @@ export class PayloadNOTIFY extends Payload {
     public spi: Buffer,
     public notifyData: Buffer,
     public critical: boolean = false,
-    public length: number = 0
+    length: number = 0
   ) {
     super(
       payloadType.NOTIFY,
@@ -1456,7 +1456,7 @@ export class PayloadDELETE extends Payload {
     public numSpi: number,
     public spis: Buffer[],
     public critical: boolean = false,
-    public length: number = 0
+    length: number = 0
   ) {
     super(
       payloadType.DELETE,
@@ -1586,7 +1586,7 @@ export class PayloadVENDOR extends Payload {
     public nextPayload: payloadType,
     public vendorId: Buffer,
     public critical: boolean = false,
-    public length: number = 0
+    length: number = 0
   ) {
     super(
       payloadType.VENDOR,
@@ -1678,13 +1678,13 @@ export class PayloadTS extends Payload {
     public tsType: payloadType,
     public tsList: TrafficSelector[],
     public critical: boolean = false,
-    public length: number = 0
+    length: number = 0
   ) {
     super(
       tsType,
       nextPayload,
       critical,
-      length > 0 ? length : 0
+      length > 0 ? length : 8 + tsList.reduce((acc, ts) => acc + ts.length, 0)
     );
   }
 
@@ -1726,14 +1726,13 @@ export class PayloadTS extends Payload {
    * @returns {Buffer}
    */
   public static serializeJSON(json: Record<string, any>): Buffer {
-    // const type = json.type; // TODO include the type in the JSON, as it is discriminating
     const buffer = Buffer.alloc(json.length);
     const genericPayload = Payload.serializeJSON(json);
     genericPayload.copy(buffer);
     buffer.writeUInt8(json.numTs, 4);
 
     const tsListBuffer =
-      json.tList?.lenght > 0
+      json.tsList?.length > 0
         ? json.tsList.map((ts: any) => TrafficSelector.serializeJSON(ts))
         : [Buffer.alloc(0)];
 
@@ -1804,14 +1803,14 @@ export class PayloadTSi extends PayloadTS {
     public nextPayload: payloadType,
     public tsList: TrafficSelector[],
     public critical: boolean = false,
-    public length: number = 0
+    length: number = 0
   ) {
     super(
       nextPayload,
       payloadType.TSi,
       tsList,
       critical,
-      length > 0 ? length : 0
+      length
     );
     this.type = payloadType.TSi;
   }
@@ -1827,14 +1826,14 @@ export class PayloadTSr extends PayloadTS {
     public nextPayload: payloadType,
     public tsList: TrafficSelector[],
     public critical: boolean = false,
-    public length: number = 0
+    length: number = 0
   ) {
     super(
       nextPayload,
       payloadType.TSr,
       tsList,
       critical,
-      length > 0 ? length : 0
+      length
     );
     this.type = payloadType.TSr;
   }
@@ -1850,7 +1849,7 @@ export class PayloadSK extends Payload {
     public nextPayload: payloadType,
     public encryptedData: Buffer,
     public critical: boolean = false,
-    public length: number = 0
+    length: number = 0
   ) {
     super(
       payloadType.SK,
@@ -2107,13 +2106,13 @@ export class PayloadCP extends Payload {
     public cfgType: number,
     public cfgData: Buffer,
     public critical: boolean = false,
-    public length: number = 0
+    length: number = 0
   ) {
     super(
       payloadType.CP,
       nextPayload,
       critical,
-      length > 0 ? length : 5 + cfgData.length
+      length > 0 ? length : 8 + cfgData.length
     );
   }
 
@@ -2205,7 +2204,7 @@ export class PayloadEAP extends Payload {
     public nextPayload: payloadType,
     public eapMessage: Buffer,
     public critical: boolean = false,
-    public length: number = 0
+    length: number = 0
   ) {
     super(
       payloadType.EAP,
