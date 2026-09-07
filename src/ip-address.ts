@@ -29,8 +29,9 @@ export function parseIPv4AddressString(addressString: string): Buffer {
 }
 
 export function formatIPv4AddressBuffer(buffer: Buffer): string {
+  // Empty INTERNAL_IP4_* in CFG_REQUEST means "please assign" (RFC 7296).
   if (buffer.length === 0) {
-    throw new Error(`Invalid IPv4 address ${buffer}`);
+    return "";
   }
   if (buffer.length !== 4) {
     throw new Error(`Invalid IPv4 address ${buffer}`);

@@ -76,8 +76,8 @@ describe('formatIPv4AddressBuffer', () => {
         expect(() => formatIPv4AddressBuffer(Buffer.from([192, 168, 1]))).toThrow();
     });
 
-    it('should throw exception for an empty buffer', () => {
-        expect(() => formatIPv4AddressBuffer(Buffer.alloc(0))).toThrow();
+    it('should format an empty buffer as an empty request', () => {
+        expect(formatIPv4AddressBuffer(Buffer.alloc(0))).toEqual('');
     });
 });
 
